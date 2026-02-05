@@ -166,7 +166,59 @@ end
 ---@return string status - "OK" or "EMPTY"
 ---@return number|nil id of a port to subscribe for, in case its empty
 function IPCManager.receive(pcb, fd)
+    local globalId = pcb.handles[fd];
+    if (not globalId) then
+        error("EBADF: Invalid file descriptor.");
+    end
 
+    local portObj = ObjectManager.get(globalId);
+    if (not portObj or portObj.type ~= "PORT") then
+        error("EBADF: File descriptor is not a port.");
+    end
+
+    --- @type Port
+    local port = portObj.impl;
+
+    if port.ownerPid ~= pcb.pid then
+        error("EPERM: Only port owner can receive messages.");
+    end
+
+    -- if there is already something in a queue
+    -- we return immediately
+    if #port.queue > 0 then
+        local message = table.remove(port.queue, 1);
+
+        -- turn handles from global to local
+        if message.globalHandles then
+            message.handles = {};
+            for _, gId in pairs(message.globalHandles) do
+                local newFd = ObjectManager.link(pcb, gId);
+                table.insert(message.handles, newFd);
+                ObjectManager.get(gId):release();
+            end
+            message.globalHandles = nil;
+        end
+
+        -- handle reply port
+        if message.globalReply then
+            message.reply = ObjectManager.link(pcb, message.globalReply);
+            ObjectManager.get(message.globalReply):release();
+            message.globalReply = nil;
+        end
+
+        -- revive blocked senders
+        if (#port.blockedSenders > 0) then
+            local senderTid = table.remove(port.blockedSenders, 1);
+            Scheduler.wake(senderTid);
+        end
+
+        return message, "OK";
+    end
+
+    local tid = Scheduler.getCurrentTid();
+    table.insert(port.receivers, tid);
+
+    return nil, "EMPTY", globalId
 end
 
 function IPCManager.stat()
