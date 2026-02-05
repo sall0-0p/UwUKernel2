@@ -52,6 +52,8 @@ end
 function Scheduler.run()
     local ThreadManager = require("ThreadManager");
     local Dispatcher = require("Dispatcher");
+    local delayedThreads = {};
+
     while (true) do
         local tid = table.remove(readyThreads, 1);
         if (tid) then
@@ -87,7 +89,7 @@ function Scheduler.run()
                 elseif (trap == "PREEMPT") then
                     -- preempted
                     tcb.state = "READY";
-                    table.insert(readyThreads, tid);
+                    table.insert(delayedThreads, tid);
                 elseif (trap == "SYSCALL") then
                     print("Thread " .. tid .. " syscalled!");
                     -- syscall called
@@ -116,17 +118,33 @@ function Scheduler.run()
                     -- Or something like that.
                     tcb.state = "READY";
                     tcb.resumeArgs = { true };
-                    table.insert(readyThreads, tid);
+                    table.insert(delayedThreads, tid);
                 end
             end
         else
+            -- merge delayed threads
+            if (#delayedThreads > 0) then
+                for _, v in pairs(delayedThreads) do
+                    table.insert(readyThreads, v);
+                end
+
+                os.queueEvent("kernel_yield");
+                delayedThreads = {};
+            end
+
             -- process events
             local eventData = { os.pullEventRaw() };
             local type = eventData[1];
             local param1 = eventData[2];
 
             if type == "terminate" then
+                print("Terminating!");
                 break;
+            end
+
+            if type ~= "kernel_yield" then
+                -- TODO: Process event.
+                print("event: " .. type);
             end
         end
     end

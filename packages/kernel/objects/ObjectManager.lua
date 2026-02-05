@@ -27,12 +27,14 @@ function ObjectManager.createHandle(pcb, kernelObject)
     pcb.handles[fd] = globalId
     kernelObject:retain()
 
+    if (kernelObject.impl.onAcquire) then kernelObject.impl:onAcquire(pcb.pid) end
+
     return fd
 end
 
 ---Get kernel object at a global id in a registry.
 ---@param globalId number global id of a kernel object.
----@return table|nil object that is returned, can be null.
+---@return KernelObject|nil object that is returned, can be null.
 function ObjectManager.get(globalId)
     return globalRegistry[globalId];
 end
@@ -55,6 +57,8 @@ function ObjectManager.link(pcb, globalId)
 
     pcb.handles[fd] = globalId;
     kernelObject:retain();
+
+    if (kernelObject.impl.onAcquire) then kernelObject.impl:onAcquire(pcb.pid) end
 
     return fd;
 end
@@ -112,8 +116,10 @@ function ObjectManager.close(pcb, localFd)
     local kernelObject = globalRegistry[globalId];
     local shouldDie = kernelObject:release();
 
+    if (kernelObject.impl.onRelease) then kernelObject.impl:onRelease(pcb.pid) end
+
     if (shouldDie) then
-        if (kernelObject.impl.destroy) then kernelObject.impl:destroy() end
+        if (kernelObject.impl.onDestroy) then kernelObject.impl:onDestroy() end
         globalRegistry[globalId] = nil;
     end
 end

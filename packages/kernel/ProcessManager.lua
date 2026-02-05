@@ -1,6 +1,6 @@
 local ProcessRegistry = require("process.ProcessRegistry");
 local Process = require("process.Process");
-local ObjectManager = require("obj.ObjectManager");
+local ObjectManager = require("objects.ObjectManager");
 local ThreadManager = require("ThreadManager");
 local Scheduler = require("Scheduler");
 

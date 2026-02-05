@@ -39,7 +39,7 @@ local ProcessRegistry = require("process.ProcessRegistry")
 --- @type Scheduler
 local Scheduler = require("Scheduler")
 
-ProcessManager.spawn(0, "while (true) do end", {}, { blob = true });
+ProcessManager.spawn(0, "local i = 1; while (true) do i = i+1; if (i % 1000 == 0) then print(i) end end", {}, { blob = true });
 ProcessManager.spawn(1, "local i = 1; while (i <= 20) do write('*'); i = i+1 end print()", {}, { blob = true });
 ProcessManager.spawn(1, "local i = 1; while (i <= 20) do write('-'); i = i+1 end print()", {}, { blob = true });
 Scheduler.run();
