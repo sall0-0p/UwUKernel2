@@ -16,29 +16,32 @@ local ProcessManager = {};
 function ProcessManager.spawn(ppid, path, args, attr)
     -- Check parent and validate permissions.
     local parent = ProcessRegistry.get(ppid);
-    if (not parent) then error("ESRSH: Invalid parent.") end;
+    if (not parent and ProcessRegistry.get(1)) then error("ESRSH: Invalid parent.") end;
     attr = attr or {};
 
-    if (attr.uid and attr.uid ~= parent.uid and parent.uid ~= 0) then
+    local currentUid = parent and parent.uid or 0
+    if (attr.uid and attr.uid ~= currentUid and currentUid ~= 0) then
         error("EPERM: No permission.");
     end
 
     -- Create new PCB.
     local newPid = ProcessRegistry.getNextPid();
+    local targetUid = attr.uid or currentUid;
+    local targetGid = attr.gid or (parent and parent.gid or 0);
     local child = Process.new(
             newPid,
-            parent.pid,
+            ppid,
             path,
-            attr.uid, attr.gid
+            targetUid, targetGid
     );
 
     -- Inherit working directory and environment.
-    child.cwd = parent.cwd;
+    child.cwd = parent and parent.cwd or "/";
 
     -- TODO: Copy environment.
 
     -- File descriptor inheritance / passing.
-    if (attr.fds) then
+    if (parent and attr.fds) then
         for childFd, parentFd in pairs(attr.fds) do
             local globalId = parent.handles[parentFd];
             if (not globalId) then
@@ -50,19 +53,74 @@ function ProcessManager.spawn(ppid, path, args, attr)
             local kernelObject = ObjectManager.get(globalId);
             kernelObject:retain()
         end
-    else
+    elseif (parent) then
         for localFd, globalId in pairs(parent.handles) do
             child.handles[localFd] = globalId
 
             local kernelObject = ObjectManager.get(globalId)
             kernelObject:retain()
         end
+    else
+        -- TODO: Create some basic handles for our lovely launchd.
     end
 
     ProcessRegistry.register(newPid, child);
-    parent.children[#parent.children + 1] = newPid;
+    if (parent) then parent.children[#parent.children + 1] = newPid end;
 
-    -- TODO: Actually make it execute here.
+    -- get environment,
+    -- TODO: replace with separate factory
+    local processEnv = {
+        arg = args or {};
+        sys = function(id, ...)
+            local result, returns = coroutine.yield("SYSCALL", id, table.pack(...));
+            if (result) then
+                return table.unpack(returns);
+            else
+                error(returns, 2);
+            end
+        end,
+        print = function(...)
+            local returns = print(...);
+            coroutine.yield();
+            return returns;
+        end,
+        write = function(...)
+            local returns = term.write(...);
+            coroutine.yield();
+            return returns;
+        end
+    }
+
+    -- temporary and shitty
+    -- TODO: REMOVE THIS.
+    setmetatable(processEnv, { __index = _G, __tostring = "env" });
+    child.env = processEnv;
+
+    -- get source
+    local blob = path;
+    if (not attr.blob) then
+        -- TODO: REPLACE WITH VFS
+        local file = fs.open(path, "r");
+        blob = file.readAll();
+        file.close();
+    end
+
+    if (not blob) then
+        ProcessRegistry.remove(newPid);
+        error("ENOENT: Executable not found: " .. path);
+    end
+
+    -- load source
+    local chunkName = (attr.blob and (attr.name or "unknown")) or path;
+    local chunk, syntaxErr = loadstring(blob, chunkName);
+    if (not chunk) then
+        ProcessRegistry.remove(newPid);
+        error("ENOEXEC: Syntax error: " .. tostring(syntaxErr));
+    end
+
+    -- execute source
+    local mainTid = ThreadManager.create(newPid, chunk, args);
+    child.threads[1] = mainTid;
 
     return newPid;
 end

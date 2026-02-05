@@ -51,6 +51,7 @@ function ThreadManager.terminate(tid, results)
     tcb.results = results;
     tcb.exitTime = os.epoch("utc");
 
+    -- TODO: Create a signal to notify the process, and kill it if nothing is done.
     if tcb.joiningThreads and #tcb.joiningThreads > 0 then
         for _, waiterTid in ipairs(tcb.joiningThreads) do
             local wakeData = { true, results };
