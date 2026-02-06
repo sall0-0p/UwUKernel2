@@ -83,7 +83,6 @@ function Scheduler.run()
                     ThreadManager.terminate(tid, trap);
                 elseif (coroutine.status(tcb.co) == "dead") then
                     -- adequate exit
-                    print("Thread " .. tid .. " exited!");
                     local results = { trap, returns[1] }
                     ThreadManager.terminate(tid, results)
                 elseif (trap == "PREEMPT") then

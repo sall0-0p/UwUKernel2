@@ -57,6 +57,14 @@ function ThreadManager.terminate(tid, results)
             local wakeData = { true, results };
             Scheduler.wake(waiterTid, wakeData);
         end
+
+        local process = ProcessRegistry.get(tcb.pid);
+        for i, v in pairs(process.threads) do
+            if (v == tid) then
+                table.remove(process.threads, i);
+                break;
+            end
+        end
     end
     tcb.joiningThreads = {}
 end
@@ -78,10 +86,15 @@ function ThreadManager.join(callerTid, targetTid)
 
     -- target is dead
     if targetTcb.state == "DEAD" then
-        return {
-            status = "OK",
-            values = { true, targetTcb.results }
-        }
+        local process = ProcessRegistry.get(targetTcb.pid);
+        for i, v in pairs(process.threads) do
+            if (v == targetTid) then
+                table.remove(process.threads, i);
+                break;
+            end
+        end
+
+        return { true, targetTcb.results }
     end
 
     -- target is alive
