@@ -79,7 +79,7 @@ function Scheduler.run()
                 if (not ok) then
                     -- crash
                     print("Thread " .. tid .. " crashed!");
-                    print("Message: " .. trap);
+                    print("Message:", trap);
                     ThreadManager.terminate(tid, trap);
                 elseif (coroutine.status(tcb.co) == "dead") then
                     -- adequate exit

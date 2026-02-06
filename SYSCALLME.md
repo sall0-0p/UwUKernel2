@@ -190,7 +190,7 @@ Sends a message to a port. This is non-blocking by default, unless queue is full
 
  **Arguments:**
  `port` - Port to use when sending message.
-`msg` -  Payload table. Can contain strings of data, numbers or booleans.
+ `msg` - Data you want to send.
 `opts`:
 - `timeout: number` - Max wait time in seconds, if queue is full. `0` to fail immediately.
 - `reply_port: number` - A handle to send back to the receiver.
@@ -251,9 +251,8 @@ Returns debug information about a port.
 `port` - handle to inspect.
 
 **Returns:**
-`{ messages: number, senders: number, capacity: number }`
-- `messages` -  current items in queue
-- `senders` - number of open send rights.
+`{ messages: number, capacity: number }`
+- `messages` - number of items in queue
 
 **Errors:**
 1. Invalid port handle

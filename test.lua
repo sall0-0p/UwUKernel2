@@ -56,3 +56,24 @@
 --
 --local threadList = call(12);
 --print(textutils.serialize(threadList));
+
+-- IPC tests
+--[32] = ipc.create,
+--[33] = ipc.send,
+--[34] = ipc.receive,
+local port = call(32);
+
+call(9, function()
+    while true do
+        local message = call(34, port);
+        print(textutils.serialize(message));
+    end
+end)
+
+local sender = call(0, "/procA", {}, {
+    blob = "call(33, 1, { 'Hello World!' })",
+    name = "Sender" ,
+    fds = {
+        [1] = port;
+    },
+});

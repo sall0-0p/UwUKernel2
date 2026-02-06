@@ -47,7 +47,7 @@ function IPCManager.send(pcb, fd, payload, opts)
     end
 
     if (#port.receivers == 0 and #port.queue >= port.capacity) then
-        return true;
+        return true, port, recipient;
     end
 
     -- build the message object (reply)
@@ -80,7 +80,6 @@ function IPCManager.send(pcb, fd, payload, opts)
     }
 
     -- build the message object (handles)
-    local transferredObjects = {};
     if (opts and opts.transfer) then
         message.globalHandles = {};
         for _, v in pairs(opts.transfer) do
@@ -221,7 +220,11 @@ function IPCManager.receive(pcb, fd)
     return nil, "EMPTY", globalId
 end
 
-function IPCManager.stat()
+function IPCManager.close(pcb, fd)
+
+end
+
+function IPCManager.stat(pcb, fd)
 
 end
 
