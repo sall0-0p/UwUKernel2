@@ -252,12 +252,43 @@ function IPCManager.receive(pcb, fd)
     return nil, "EMPTY", globalId
 end
 
+--- Closes port.
+--- @param pcb Process process to close port for.
+--- @param fd number specific file descriptor pointing to port, to get metadata for.
 function IPCManager.close(pcb, fd)
-
+    ObjectManager.close(pcb, fd);
 end
 
+--- Returns some debug data about port.
+--- @param pcb Process process to get metadata for.
+--- @param fd number specific file descriptor pointing to port, to get metadata for.
 function IPCManager.stat(pcb, fd)
+    local globalId = pcb.handles[fd];
+    if (not globalId) then
+        error("EBADF: Invalid file descriptor.");
+    end
 
+    local rightObj = ObjectManager.get(globalId);
+    if (not rightObj) then error("EBADF: Invalid file descriptor.") end
+
+    local portId;
+    if (rightObj.type == "SEND_RIGHT" or rightObj.type == "RECEIVE_RIGHT") then
+        portId = rightObj.impl.portId;
+    else
+        error("EBADF: File descriptor is not a port right.");
+    end
+
+    local portObj = ObjectManager.get(portId);
+    if (not portObj) then error("EINTERNAL: Right points to invalid port") end
+
+    local port = portObj.impl;
+
+    return {
+        messages = #port.queue,
+        capacity = port.capacity,
+        receivers = #port.receivers,
+        senders = #port.senders
+    }
 end
 
 ---Migrates right, if receives send right - returns pointer to same send right, if gets receive right - returns pointer to send right.

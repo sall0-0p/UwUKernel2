@@ -91,12 +91,14 @@ call(9, function()
     end
 end)
 
-call(0, "/sender1", {}, {
+local sender2 = call(0, "/sender1", {}, {
     blob = "local replyPort = call(32); local somePort = call(32); call(33, 1, { 'Hello World!' }, { reply_port = replyPort }); local message = call(34, replyPort); print('Received reply:'); print(textutils.serialize(message)); call(33, 1, { 'Take a handle bro!' }, { transfer = { somePort } })",
     name = "Sender",
     fds = {
         [1] = port;
     },
 });
+
+print(textutils.serialize(call(37, port)));
 
 -- TODO: TEST HANDLE TRANSFERRING, IMPOSSIBLE RN!

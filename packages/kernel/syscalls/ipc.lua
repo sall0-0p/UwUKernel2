@@ -44,14 +44,18 @@ end
 
 ---Releases a handle.
 ---@param tcb Thread Thread calling the syscall.
-function ipc.close(tcb)
-
+---@param fd number Handle to close.
+function ipc.close(tcb, fd)
+    local process = ProcessRegistry.get(tcb.pid);
+    IPCManager.close(process, fd);
 end
 
 ---Returns debug information about a port.
 ---@param tcb Thread Thread calling the syscall.
-function ipc.stat(tcb)
-
+---@param fd number Handle to inspect.
+function ipc.stat(tcb, fd)
+    local process = ProcessRegistry.get(tcb.pid);
+    return IPCManager.stat(process, fd);
 end
 
 return {
