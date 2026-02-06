@@ -136,7 +136,7 @@ function IPCManager.send(pcb, fd, payload, opts)
 
         -- wake thread
         local receiver = table.remove(port.receivers, 1);
-        Scheduler.wake(receiver, message);
+        Scheduler.wake(receiver, { true, { message } });
         return false;
     end
 
@@ -208,7 +208,7 @@ function IPCManager.receive(pcb, fd)
         -- revive blocked senders
         if (#port.blockedSenders > 0) then
             local senderTid = table.remove(port.blockedSenders, 1);
-            Scheduler.wake(senderTid);
+            Scheduler.wake(senderTid, { true, { }});
         end
 
         return message, "OK";

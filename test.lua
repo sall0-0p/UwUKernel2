@@ -66,14 +66,37 @@ local port = call(32);
 call(9, function()
     while true do
         local message = call(34, port);
+        print("Received message: ");
         print(textutils.serialize(message));
+
+        if (message.reply) then
+            call(33, message.reply, { "Hello bro!" });
+        end
+
+        if (message.handles and message.handles[1]) then
+            local newPort = message.handles[1];
+
+            call(0, "/sender2", {}, {
+                blob = "local replyPort = call(32); call(33, 1, { 'Hello from transferred handle!' }, { reply_port = replyPort, handles = { somePort } }); local message = call(34, replyPort); print('Received reply:'); print(textutils.serialize(message));",
+                name = "Sender",
+                fds = {
+                    [1] = newPort;
+                },
+            });
+
+            local message = call(34, newPort);
+            print("Received another message: ");
+            print(textutils.serialize(message));
+        end
     end
 end)
 
-local sender = call(0, "/procA", {}, {
-    blob = "call(33, 1, { 'Hello World!' })",
-    name = "Sender" ,
+call(0, "/sender1", {}, {
+    blob = "local replyPort = call(32); local somePort = call(32); call(33, 1, { 'Hello World!' }, { reply_port = replyPort }); local message = call(34, replyPort); print('Received reply:'); print(textutils.serialize(message)); call(33, 1, { 'Take a handle bro!' }, { transfer = { somePort } })",
+    name = "Sender",
     fds = {
         [1] = port;
     },
 });
+
+-- TODO: TEST HANDLE TRANSFERRING, IMPOSSIBLE RN!
