@@ -12,6 +12,38 @@ end
 
 --- Kernel Object registry.
 
+---Registers a kernel object in the global registry without attaching it to a process.
+---@param kernelObject KernelObject object to be registered
+---@return number globalId
+function ObjectManager.register(kernelObject)
+    local globalId = getNextId();
+    globalRegistry[globalId] = kernelObject;
+    return globalId;
+end
+
+---Increment reference count of a global object.
+---@param globalId number
+function ObjectManager.retain(globalId)
+    local obj = globalRegistry[globalId];
+    if (obj) then
+        obj:retain();
+    end
+end
+
+---Decrement reference count of a global object and destroy it if needed.
+---@param globalId number
+function ObjectManager.release(globalId)
+    local kernelObject = globalRegistry[globalId];
+    if (not kernelObject) then return end;
+
+    local shouldDie = kernelObject:release();
+
+    if (shouldDie) then
+        if (kernelObject.impl.onDestroy) then kernelObject.impl:onDestroy() end
+        globalRegistry[globalId] = nil;
+    end
+end
+
 ---Create a new handle.
 ---@param pcb table valid Process control block, belonging to process creating handle.
 ---@param kernelObject KernelObject object to be created as a handle.
@@ -39,21 +71,29 @@ function ObjectManager.get(globalId)
     return globalRegistry[globalId];
 end
 
-
 ---Link global kernel object to specific process handles.
 ---@param pcb table
 ---@param globalId number global id of object to link to
+---@param targetFd number|nil optional specific FD to link to (overwrites if exists)
 ---@return number file descriptor object was linked to.
-function ObjectManager.link(pcb, globalId)
+function ObjectManager.link(pcb, globalId, targetFd)
     ---@type KernelObject
     local kernelObject = globalRegistry[globalId];
     if (not kernelObject) then
         error(string.format("Linking invalid global id: %s", globalId)); end
 
     local fd = 0;
-    if (not pcb.handles or type(pcb.handles) ~= "table") then
-        error("Invalid PCB") end;
-    while pcb.handles[fd] do fd = fd + 1 end;
+    if (targetFd) then
+        fd = targetFd;
+        if (pcb.handles[fd]) then
+            ObjectManager.close(pcb, fd);
+        end
+    else
+        fd = 0;
+        if (not pcb.handles or type(pcb.handles) ~= "table") then
+            error("Invalid PCB") end;
+        while pcb.handles[fd] do fd = fd + 1 end;
+    end
 
     pcb.handles[fd] = globalId;
     kernelObject:retain();
@@ -76,6 +116,16 @@ function ObjectManager.dup(pcb, oldFd, newFd)
     local kernelObject = globalRegistry[globalId];
     if not kernelObject then
         error("EINTERNAL: PCB handle points to non-existent object");
+    end
+
+    if (kernelObject.type == "RECEIVE_RIGHT") then
+        local portId = kernelObject.impl.portId;
+        local portObj = globalRegistry[portId];
+
+        if (portObj and portObj.impl.sendRight) then
+            globalId = portObj.impl.sendRight;
+            kernelObject = globalRegistry[globalId];
+        end
     end
 
     local targetFd = newFd;

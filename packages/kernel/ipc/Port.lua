@@ -6,16 +6,20 @@
 --- @field temporarySenders number[] threads that have receive right, but only for once
 --- @field blockedSenders number[] threads that are blocked by attempting to send when queue is full
 --- @field ownerPid number pid of a process that port belongs to
+--- @field sendRight number pointer to send right kernel object
+--- @field receiveRight number pointer to receive right kernel object
 local Port = {}
 Port.__index = Port;
 
-function Port.new(ownerPid)
+function Port.new()
     local new = {
         queue = {},
         capacity = 16,
         receivers = {},
-        ownerPid = ownerPid,
         senders = {},
+        ownerPid = nil,
+        receiveRight = nil,
+        sendRight = nil,
 
         temporarySenders = {},
         blockedSenders = {},
@@ -23,36 +27,6 @@ function Port.new(ownerPid)
 
     setmetatable(new, Port);
     return new;
-end
-
----@param by number pid of a process we are transferred to
-function Port:onAcquire(by)
-    if (self.ownerPid == nil) then
-        self.ownerPid = by;
-
-        for i, v in pairs(self.senders) do
-            if (v == by) then
-                table.remove(self.senders, i);
-                break;
-            end
-        end
-    else
-        table.insert(self.senders, by);
-    end
-end
-
----@param from number pid of a process we are transferred from
-function Port:onRelease(from)
-    if (from == self.ownerPid) then
-        self.ownerPid = nil;
-    else
-        for i, v in pairs(self.senders) do
-            if (v == by) then
-                table.remove(self.senders, i);
-                break;
-            end
-        end
-    end
 end
 
 return Port;

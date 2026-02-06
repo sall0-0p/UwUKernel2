@@ -1,6 +1,8 @@
 local ObjectManager = require("objects.ObjectManager");
 local KernelObject = require("objects.KernelObject");
 local Port = require("ipc.Port");
+local ReceiveRight = require("ipc.ReceiveRight");
+local SendRight = require("ipc.SendRight");
 local Scheduler = require("Scheduler");
 local ProcessRegistry = require("process.ProcessRegistry");
 
@@ -12,10 +14,32 @@ local IPCManager = {};
 ---@param pcb Process process that creates new port.
 ---@return number file descriptor of created port.
 function IPCManager.createPort(pcb)
-    local port = Port.new(pcb.pid);
+    -- create port
+    local port = Port.new();
+    local portObj = KernelObject.new("PORT", port);
+    local portId = ObjectManager.register(portObj);
 
-    local fd = ObjectManager.createHandle(pcb, KernelObject.new("PORT", port));
-    return fd;
+    -- create rights
+    local receiveRight = ReceiveRight.new(portId);
+    local receiveRightObj = KernelObject.new("RECEIVE_RIGHT", receiveRight);
+    local receiveRightId = ObjectManager.register(receiveRightObj);
+
+    local sendRight = SendRight.new(portId);
+    local sendRightObj = KernelObject.new("SEND_RIGHT", sendRight);
+    local sendRightId = ObjectManager.register(sendRightObj);
+
+    -- link rights to port
+    port.receiveRight = receiveRightId;
+    port.sendRight = sendRightId;
+
+    ObjectManager.retain(sendRightId);
+
+    port.onDestroy = function()
+        ObjectManager.release(sendRightId);
+    end
+
+    -- link fd
+    return ObjectManager.createHandle(pcb, receiveRightObj);
 end
 
 ---Sends a message to the specific port.
@@ -34,10 +58,19 @@ function IPCManager.send(pcb, fd, payload, opts)
         error("EBADF: Invalid file descriptor.");
     end
 
-    local portObj = ObjectManager.get(globalId);
-    if (not portObj or portObj.type ~= "PORT") then
-        error("EBADF: File descriptor is not a port.");
+    print(globalId); -- outputs: 0
+    local rightObj = ObjectManager.get(globalId);
+    if (not rightObj) then error("EBADF: Invalid file descriptor.") end -- <-- errors here
+
+    local portId;
+    if (rightObj.type == "SEND_RIGHT" or rightObj.type == "RECEIVE_RIGHT") then
+        portId = rightObj.impl.portId;
+    else
+        error("EBADF: File descriptor is not a port right.");
     end
+
+    local portObj = ObjectManager.get(portId);
+    if (not portObj) then error("EINTERNAL: Right points to invalid port") end
 
     --- @type Port
     local port = portObj.impl;
@@ -54,23 +87,20 @@ function IPCManager.send(pcb, fd, payload, opts)
     local localReplyPort = (opts or {}).reply_port;
     local globalReplyPort;
     if (localReplyPort) then
-        globalReplyPort = pcb.handles[localReplyPort];
+        -- CHANGED: Use migrateRight logic to ensure we send a SendRight
+        local originalGlobalId = pcb.handles[localReplyPort];
+        if (not originalGlobalId) then error("EBADF: Invalid reply port") end
 
-        if (not globalReplyPort) then
-            error("EBADF: Invalid reply file descriptor");
+        globalReplyPort = IPCManager.migrateRight(originalGlobalId);
+
+        -- Retain it because it's now referenced by the message in transit
+        ObjectManager.retain(globalReplyPort);
+
+        -- Add temporary sender tracking logic if needed (simplified here)
+        local replyPortObj = ObjectManager.get(ObjectManager.get(globalReplyPort).impl.portId);
+        if replyPortObj then
+            table.insert(replyPortObj.impl.temporarySenders, recipient.pid);
         end
-
-        local globalReplyPortObject = ObjectManager.get(globalReplyPort);
-        if (not globalReplyPortObject or globalReplyPortObject.type ~= "PORT") then
-            error("EBADF: Reply file descriptor is not a port!");
-        end
-
-        -- retain it so noone does something evil and crashes the kernel
-        globalReplyPortObject:retain();
-
-        --- @type Port
-        local replyPort = globalReplyPortObject.impl;
-        table.insert(replyPort.temporarySenders, recipient.pid);
     end
 
     local message = {
@@ -88,10 +118,10 @@ function IPCManager.send(pcb, fd, payload, opts)
                 error("EBADF: Trying to transfer invalid file descriptor.");
             end
 
-            -- temporary retain objects so they are not cleaned up in .close()
-            local gObject = ObjectManager.get(gId);
-            gObject:retain();
+            -- If user wants to give a Send Right from a Receive Right, they should
+            -- duplicate it first.
 
+            ObjectManager.retain(gId);
             table.insert(message.globalHandles, gId);
             ObjectManager.close(pcb, v);
         end
@@ -170,10 +200,12 @@ function IPCManager.receive(pcb, fd)
         error("EBADF: Invalid file descriptor.");
     end
 
-    local portObj = ObjectManager.get(globalId);
-    if (not portObj or portObj.type ~= "PORT") then
-        error("EBADF: File descriptor is not a port.");
+    local rightObj = ObjectManager.get(globalId);
+    if (not rightObj or rightObj.type ~= "RECEIVE_RIGHT") then
+        error("EPERM: Descriptor is not a receive right.");
     end
+
+    local portObj = ObjectManager.get(rightObj.impl.portId);
 
     --- @type Port
     local port = portObj.impl;
@@ -226,6 +258,28 @@ end
 
 function IPCManager.stat(pcb, fd)
 
+end
+
+---Migrates right, if receives send right - returns pointer to same send right, if gets receive right - returns pointer to send right.
+---@param rightId number id of a kernel object corresponding to specific right.
+---@return number id of migrated kernel object.
+function IPCManager.migrateRight(rightId)
+    local kernelObject = ObjectManager.get(rightId);
+    if (not kernelObject) then return rightId end
+
+    if (kernelObject.type == "SEND_RIGHT") then
+        return rightId;
+    elseif (kernelObject.type == "RECEIVE_RIGHT") then
+        --- @type ReceiveRight
+        local right = kernelObject.impl;
+        local portId = right.portId;
+
+        --- @type Port
+        local port = ObjectManager.get(portId).impl;
+        return port.sendRight;
+    else
+        return rightId
+    end
 end
 
 return IPCManager;

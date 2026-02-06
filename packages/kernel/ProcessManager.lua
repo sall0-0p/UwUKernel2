@@ -4,6 +4,7 @@ local ObjectManager = require("objects.ObjectManager");
 local ThreadManager = require("ThreadManager");
 local Scheduler = require("Scheduler");
 local Utils = require("misc.Utils");
+local IPCManager = require("IPCManager");
 
 --- @class ProcessManager
 local ProcessManager = {};
@@ -73,17 +74,15 @@ function ProcessManager.spawn(ppid, path, args, attr)
                 error("EBADF: Parent handle " .. tostring(parentFd) .. " is invalid");
             end
 
-            child.handles[childFd] = globalId
+            globalId = IPCManager.migrateRight(globalId);
 
-            local kernelObject = ObjectManager.get(globalId);
-            kernelObject:retain()
+            ObjectManager.link(child, globalId, childFd);
         end
     elseif (parent) then
         for localFd, globalId in pairs(parent.handles) do
-            child.handles[localFd] = globalId
+            globalId = IPCManager.migrateRight(globalId);
 
-            local kernelObject = ObjectManager.get(globalId)
-            kernelObject:retain()
+            ObjectManager.link(child, globalId, localFd);
         end
     else
         -- TODO: Create some basic handles for our lovely launchd.
