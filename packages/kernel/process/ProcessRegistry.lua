@@ -29,6 +29,16 @@ function ProcessRegistry.get(pid)
     return processList[pid];
 end
 
+---Get list of all process ids.
+---@return number[] every pid
+function ProcessRegistry.getAll()
+    local result = {};
+    for pid, _ in pairs(processList) do
+        table.insert(result, pid);
+    end
+    return result;
+end
+
 ---Remove process from a registry
 ---@param pid number
 function ProcessRegistry.remove(pid)

@@ -21,8 +21,10 @@ Creates new process in one atomic method. Analogue of `posix_spawn`.
 - `fds: table`- Map of file descriptors
 - `uid: number`-  Run as user (requires root)
 - `gid: number`- Run as group (requires root)
+- `groups: number[]` - Run with supplementary groups (requires root)
 - `name: string`- Debug name for process list
 - `limits: table` - limits for a child process, view `proc.limit` for more.
+- `blob: string` - source to run from, if defined - process will run this as main thread instead of reading source from path (requires root)
 
 **Returns:**
 `pid`: PID of child process.
@@ -79,7 +81,7 @@ Returns metadata of process. If `pid` is nil - returns metadata of process itsel
 `pid` - PID of process to get metadata of.
 
 **Returns:**
-- `{ pid, ppid, uid, gid, state, name, cputime }` - process metadata
+- `{ pid, ppid, uid, gid, state, groups, name, cpuTime, children, limits }` - process metadata
 
 **Errors:**
 1. if process was not found.
@@ -93,7 +95,7 @@ Changes attributes of running process.
 - `uid: number` - change user id (root-only)
 - `gid: number` - change group id (root-only)
 - `groups: number[]` - set supplementary groups
-- `cwd` - change working directory (`chdir` can be used instead)
+- `cwd` - change working directory
 
 **Errors:**
 1. Caller is not root (cannot change uid/gid).
@@ -119,6 +121,8 @@ Sets strict limits for calling process (they are inherited by children). Limits 
 ---
 `7` | `proc.yield() -> void`
 Voluntary gives up slice of CPU time.
+
+> REDUNDANT AND REMOVED.
 
 ---
 `8` | `proc.list() -> number[]`
@@ -221,6 +225,8 @@ Blocks until a message arrives on specific port.
 ---
 `35` | `ipc.transfer(pid: number, port: number) -> void`
 Manually grants a send right for specific port to another process.
+
+> REDUNDANT AND REMOVED.
 
  **Arguments:**
 `pid` - target process id.

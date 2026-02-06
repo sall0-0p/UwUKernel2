@@ -3,6 +3,7 @@ local Process = require("process.Process");
 local ObjectManager = require("objects.ObjectManager");
 local ThreadManager = require("ThreadManager");
 local Scheduler = require("Scheduler");
+local Utils = require("misc.Utils");
 
 --- @class ProcessManager
 local ProcessManager = {};
@@ -24,19 +25,43 @@ function ProcessManager.spawn(ppid, path, args, attr)
         error("EPERM: No permission.");
     end
 
+    local currentGid = parent and parent.gid or 0
+    if (attr.gid and attr.gid ~= currentGid and currentUid ~= 0) then
+        error("EPERM: No permission.");
+    end
+
+    local currentGroups = parent and parent.groups or {}
+    if (attr.groups and attr.groups ~= currentGroups and currentUid ~= 0) then
+        error("EPERM: No permission.");
+    end
+
+    -- TODO: Replace with more sophisticated check!
+    if (attr.limits and currentUid ~= 0) then
+        error("EPERM: No permission.");
+    end
+
     -- Create new PCB.
     local newPid = ProcessRegistry.getNextPid();
     local targetUid = attr.uid or currentUid;
     local targetGid = attr.gid or (parent and parent.gid or 0);
+    local targetGroups = attr.groups or (parent and parent.groups or {});
     local child = Process.new(
             newPid,
             ppid,
-            path,
+            attr.name or path,
             targetUid, targetGid
     );
 
     -- Inherit working directory and environment.
     child.cwd = parent and parent.cwd or "/";
+
+    -- Inherit limits and groups
+    child.groups = targetGroups;
+    if (parent and not attr.limits) then
+        child.limits = Utils.deepcopy(parent.limits);
+    elseif (attr.limits) then
+        child.limits = Utils.deepcopy(attr.limits);
+    end
 
     -- TODO: Copy environment.
 
@@ -71,7 +96,7 @@ function ProcessManager.spawn(ppid, path, args, attr)
     -- TODO: replace with separate factory
     local processEnv = {
         arg = args or {};
-        sys = function(id, ...)
+        call = function(id, ...)
             local result, returns = coroutine.yield("SYSCALL", id, table.pack(...));
             if (result) then
                 return table.unpack(returns);
@@ -97,7 +122,7 @@ function ProcessManager.spawn(ppid, path, args, attr)
     child.env = processEnv;
 
     -- get source
-    local blob = path;
+    local blob = attr.blob;
     if (not attr.blob) then
         -- TODO: REPLACE WITH VFS
         local file = fs.open(path, "r");
@@ -111,8 +136,7 @@ function ProcessManager.spawn(ppid, path, args, attr)
     end
 
     -- load source
-    local chunkName = (attr.blob and (attr.name or "unknown")) or path;
-    local chunk, syntaxErr = loadstring(blob, chunkName);
+    local chunk, syntaxErr = loadstring(blob, "@" .. path);
     if (not chunk) then
         ProcessRegistry.remove(newPid);
         error("ENOEXEC: Syntax error: " .. tostring(syntaxErr));
@@ -163,29 +187,51 @@ function ProcessManager.exit(pid, exitCode)
     local parent = ProcessRegistry.get(pcb.ppid)
     if parent then
         for i = #parent.threadsWaitingForChildren, 1, -1 do
-            local waiter = parent.threadsWaitingForChildren[i];
-            if waiter.target == -1 or waiter.target == pid then
-                table.remove(parent.threadsWaitingForChildren, i);
-                Scheduler.wake(waiter.tid);
+            local waiter = table.remove(parent.threadsWaitingForChildren, i);
+
+            if (waiter.target ~= -1 and waiter.target ~= pid) then
+                return;
             end
+
+            local result = {
+                pid = pcb.pid,
+                code = pcb.exitCode,
+                usage = pcb.cpuTime or 0
+            };
+
+            -- wake waiter
+            Scheduler.wake(waiter.tid, { true, { result } });
+
+            -- reap process
+            ProcessRegistry.remove(pid);
+
+            -- remove from list of children
+            for j, childPid in ipairs(parent.children) do
+                if childPid == pid then
+                    table.remove(parent.children, j)
+                    break
+                end
+            end
+
+            return;
         end
     end
 end
 
 ---Wait until child process exits.
----@param callingProcess Process process that is supposed to wait.
+---@param pcb Process process that is supposed to wait.
 ---@param targetPid number pid of a child to wait for, -1 for any.
 ---@param opts table table of options.
-function ProcessManager.wait(callingProcess, targetPid, opts)
+function ProcessManager.wait(pcb, targetPid, opts)
     opts = opts or {};
 
-    if (#callingProcess.children == 0) then
-        error("ECHILD: No child processes.");
+    if (#pcb.children == 0) then
+        error("ECHILD: No child processes."); -- <-- it fails here actually
     end
 
     -- Search for a zombie process among children.
     local foundMatch = false;
-    for i, childPid in ipairs(callingProcess.children) do
+    for i, childPid in ipairs(pcb.children) do
         if (targetPid == -1) or (targetPid == childPid) then
             foundMatch = true;
             local child = ProcessRegistry.get(childPid);
@@ -198,7 +244,7 @@ function ProcessManager.wait(callingProcess, targetPid, opts)
                 }
 
                 ProcessRegistry.remove(childPid);
-                table.remove(callingProcess.children, i);
+                table.remove(pcb.children, i);
                 return result;
             end
         end
@@ -209,7 +255,7 @@ function ProcessManager.wait(callingProcess, targetPid, opts)
     end
 
     local callerTid = Scheduler.getCurrentTid();
-    table.insert(callingProcess.threadsWaitingForChildren, {
+    table.insert(pcb.threadsWaitingForChildren, {
         tid = callerTid,
         target = targetPid,
     });

@@ -84,18 +84,17 @@ function Scheduler.run()
                 elseif (coroutine.status(tcb.co) == "dead") then
                     -- adequate exit
                     print("Thread " .. tid .. " exited!");
-                    local results = { trap, args[1] }
+                    local results = { trap, returns[1] }
                     ThreadManager.terminate(tid, results)
                 elseif (trap == "PREEMPT") then
                     -- preempted
                     tcb.state = "READY";
                     table.insert(delayedThreads, tid);
                 elseif (trap == "SYSCALL") then
-                    print("Thread " .. tid .. " syscalled!");
                     -- syscall called
-                    -- args[1] here corresponds to syscall id;
-                    -- args[2] here corresponds to syscall arguments table;
-                    local instr = Dispatcher.dispatch(tcb, args[1], args[2]);
+                    -- returns[1] here corresponds to syscall id;
+                    -- returns[2] here corresponds to syscall arguments table;
+                    local instr = Dispatcher.dispatch(tcb, returns[1], returns[2]);
 
                     if instr.status == "OK" then
                         tcb.state = "READY";
@@ -108,6 +107,10 @@ function Scheduler.run()
                     elseif (instr.status == "ERROR") then
                         tcb.state = "READY"
                         tcb.resumeArgs = { false, instr.error }
+                        print("Error in " .. tid .. "!!!");
+                        print("Message: " .. instr.error);
+                    elseif (instr.status == "DROP") then
+                        -- do nothing
                     else
                         ThreadManager.terminate(tid, "Unknown error in Dispatcher!");
                     end
@@ -144,7 +147,6 @@ function Scheduler.run()
 
             if type ~= "kernel_yield" then
                 -- TODO: Process event.
-                print("event: " .. type);
             end
         end
     end

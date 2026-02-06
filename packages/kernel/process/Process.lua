@@ -45,11 +45,12 @@ function Process.new(pid, ppid, name, uid, gid)
         cpuTime = 0,
         startTime = os.epoch("utc"),
 
+        -- TODO: Change them one day, examples for now!
         limits = {
-            maxFiles = 0,
-            maxPorts = 0,
-            maxProcesses = 0,
-            maxThreads = 0,
+            maxFiles = 32,
+            maxPorts = 16,
+            maxProcesses = 8,
+            maxThreads = 16,
         },
 
         threadsWaitingForChildren = {},
