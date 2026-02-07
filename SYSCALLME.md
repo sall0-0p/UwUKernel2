@@ -523,14 +523,25 @@ If called with `local`, returns the number of milliseconds since 1 January 1970 
 1. Invalid locale provided.
 
 ---
-`97` | `sys.timer(duration: number) -> fd: number`
+`97` | `sys.timer(port: number, duration: number, cookie?: any) -> id: number`
 Starts a system timer that fires after `duration` seconds.
 
  **Arguments:**
+`port` - file descriptor pointing towards the port, which will receive relevant timer.
 `duration` - time in seconds until timer should fire.
+`cookie` - optional payload.
 
 **Returns:**
-`fd` - fd of a timer. 
+`id` - id of a timer. Can be used for cancelling or distinguishing timers.
+
+> [!NOTE]
+> Payload of a timer should look like this:
+> ```lua
+> {
+> 	type = "TIMER",
+> 	id = 0, -- id of a timer
+> 	cookie = "anything here...", -- your cookie
+> ```
 
 ---
 `98` | `sys.alarm(time: number) -> id: number`
@@ -543,11 +554,11 @@ Sets an alarm for a specific in-game time (0.0 to 24.0).
 `id` - id of alarm. 
 
 ---
-`99` | `sys.cancel(fd: number) -> void`
+`99` | `sys.cancel(id: number) -> void`
 Cancel timer or alarm based on file descriptor.
 
  **Arguments:**
-`fd` - fd of alarm or timer to be cancelled.
+`id` - id of alarm or timer to be cancelled.
 
 ---
 `100` | `sys.log(level: string, msg: string) -> void`

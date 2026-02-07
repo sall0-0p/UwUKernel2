@@ -42,7 +42,7 @@ function IPCManager.createPort(pcb, temporary)
     port.temporary = temporary or false;
 
     -- link fd
-    return ObjectManager.createHandle(pcb, receiveRightObj);
+    return ObjectManager.link(pcb, receiveRightId);
 end
 
 ---Sends a message to the specific port.
@@ -201,6 +201,12 @@ end
 ---@param opts table|nil Options: { reply_global_id = number, transfer_global_ids = number[] }
 function IPCManager.sendKernelMessage(globalPortId, payload, opts)
     local portObj = ObjectManager.get(globalPortId);
+
+    if portObj and (portObj.type == "RECEIVE_RIGHT" or portObj.type == "SEND_RIGHT") then
+        local realPortId = portObj.impl.portId
+        portObj = ObjectManager.get(realPortId)
+    end
+
     if not portObj or portObj.type ~= "PORT" then
         return false, "EINTERNAL: Invalid kernel target port";
     end

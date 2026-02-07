@@ -105,16 +105,33 @@
 --print(textutils.serialize(call(8)));
 --print(textutils.serialize(call(4, 0)));
 
-local timer1 = call(97, 1, "HELLO WORLD!");
-print("Created timer 1 with id:", timer1);
-local event = call(34, timer1);
-print("Received timer: ")
-print(textutils.serialize(event));
+--local port = call(32);
+--local timerId = call(97, port, 1, { "HELLO WORLD 1!" });
+--local timerId = call(97, port, 3, { "HELLO WORLD 2!" });
+--local timerId = call(97, port, 5, { "HELLO WORLD 3!" });
+--print("Created timer with id:", timerId);
+--local data = call(34, port);
+--print("Received timer: ")
+--print(textutils.serialize(data));
+--
+--print("Creating second timer!");
+--local timerId = call(97, port, 1, { "HELLO WORLD!" });
+--print("Cancelling second timer!");
+--call(99, timerId);
+--call(34, port);
+--print("This should not be written!");
 
-local timer2 = call(97, 1, "HELLO BOBERS!");
-print("Created timer 2 with id:", timer2);
-call(99, timer2);
-print("Cancelled timer 2!");
-print("Trying to listen to non existant timer 2!");
-local event = call(34, timer2);
-print(textutils.serialize(event));
+local port = call(32); -- ipc.create()
+print("Ordering timers!");
+call(97, port, 1, "Hello from 1s timer!"); -- sys.timer(port, 1, "cookie");
+call(97, port, 3, "Hello from 3s timer!"); -- sys.timer(port, 3, "cookie");
+call(97, port, 5, "Hello from 5s timer!"); -- sys.timer(port, 5, "cookie");
+
+while true do
+    local message = call(34, port); -- ipc.receive(port);
+    if (message.data.type == "TIMER") then
+        print(message.data.cookie);
+    else
+        print(textutils.serialize(message));
+    end
+end

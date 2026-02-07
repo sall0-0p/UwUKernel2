@@ -5,20 +5,22 @@ local sys = {};
 
 ---Starts a system timer that fires after `duration` seconds.
 ---@param tcb Thread Thread calling the syscall.
+---@param fd number File descriptor pointing to port, that timer should send message to.
 ---@param duration number Duration in seconds after which timer should fire.
-function sys.timer(tcb, duration, cookie)
+---@param cookie any Optional payload.
+function sys.timer(tcb, fd, duration, cookie)
     local pcb = ProcessRegistry.get(tcb.pid);
 
-    return TimerManager.createTimer(pcb, duration, cookie);
+    return TimerManager.createTimer(pcb, fd, duration, cookie);
 end
 
 ---Cancel timer or alarm based on file descriptor.
 ---@param tcb Thread Thread calling the syscall.
----@param fd number File descriptor timer is assigned to.
-function sys.cancel(tcb, fd)
+---@param id number Id of timer or alarm that we should cancel.
+function sys.cancel(tcb, id)
     local pcb = ProcessRegistry.get(tcb.pid);
 
-    return TimerManager.cancel(pcb, fd);
+    return TimerManager.cancel(pcb, id);
 end
 
 return {
