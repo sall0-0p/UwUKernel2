@@ -9,6 +9,18 @@ local IPCManager = require("IPCManager");
 --- @class ProcessManager
 local ProcessManager = {};
 
+local function createKernelProcess()
+    local kernelProcess = Process.new(0, nil, "Kernel", 0, 0);
+    kernelProcess.limits = {
+        maxFiles = math.huge;
+        maxPorts = math.huge;
+        maxProcesses = math.huge;
+        maxThreads = math.huge;
+    }
+
+    ProcessRegistry.register(0, kernelProcess);
+end
+
 ---Spawn a new process.
 ---@param ppid number parent pid.
 ---@param path string path to the executable.
@@ -18,7 +30,7 @@ local ProcessManager = {};
 function ProcessManager.spawn(ppid, path, args, attr)
     -- Check parent and validate permissions.
     local parent = ProcessRegistry.get(ppid);
-    if (not parent and ProcessRegistry.get(1)) then error("ESRSH: Invalid parent.") end;
+    if (not parent) then error("ESRSH: Invalid parent.") end;
     attr = attr or {};
 
     local currentUid = parent and parent.uid or 0
@@ -266,4 +278,5 @@ function ProcessManager.wait(pcb, targetPid, opts)
     }
 end
 
+createKernelProcess();
 return ProcessManager;
