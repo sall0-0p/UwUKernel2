@@ -1,9 +1,10 @@
 local ThreadRegistry = require("process.ThreadRegistry");
+local ProcessRegistry = require("process.ProcessRegistry");
 
 -- Preemption
-local QUANTUM_TIME = 0.05
-local QUANTUM_INSTRUCTIONS = 10000
-local deadline = 0
+local QUANTUM_TIME = 0.05;
+local QUANTUM_INSTRUCTIONS = 10000;
+local deadline = 0;
 
 local function hook()
     if (os.epoch("utc") > deadline) then
@@ -19,6 +20,12 @@ local Scheduler = {}
 local readyThreads = {}
 ---@type number
 local currentTid;
+
+-- times
+local startEpoch = 0;
+local runningTime = 0;
+local systemTime = 0;
+local idleTime = 0;
 
 --- Add a thread to the execution queue.
 ---@param tid number id of a thread to be added.
@@ -48,12 +55,24 @@ function Scheduler.getCurrentTid()
     return currentTid;
 end
 
+--- Returns debug information about resource usage by kernel.
+--- @return table { startEpoch, runningTime, systemTime, idleTime }
+function Scheduler.getTimeUsage()
+    return {
+        startEpoch = startEpoch,
+        runningTime = runningTime,
+        systemTime = systemTime,
+        idleTime = idleTime,
+    }
+end
+
 --- Starts the scheduler.
 function Scheduler.run()
     local ThreadManager = require("ThreadManager");
     local Dispatcher = require("Dispatcher");
     local delayedThreads = {};
 
+    startEpoch = os.epoch("utc");
     while (true) do
         local tid = table.remove(readyThreads, 1);
         if (tid) then
@@ -71,9 +90,18 @@ function Scheduler.run()
                 local args = tcb.resumeArgs or {};
                 tcb.resumeArgs = nil;
 
+                local startTime = os.epoch("utc");
                 local returns = table.pack(coroutine.resume(tcb.co, table.unpack(args)));
+                local endTime = os.epoch("utc");
+
                 local ok = table.remove(returns, 1);
                 local trap = table.remove(returns, 1);
+
+                -- add running time to the process cpuTime;
+                local pcb = ProcessRegistry.get(tcb.pid);
+                pcb.cpuTime = pcb.cpuTime + (endTime - startTime);
+                tcb.cpuTime = tcb.cpuTime + (endTime - startTime);
+                runningTime = runningTime + (endTime - startTime);
 
                 -- handle traps
                 if (not ok) then
@@ -93,7 +121,12 @@ function Scheduler.run()
                     -- syscall called
                     -- returns[1] here corresponds to syscall id;
                     -- returns[2] here corresponds to syscall arguments table;
+                    local systemTimeStart = os.epoch("utc");
                     local instr = Dispatcher.dispatch(tcb, returns[1], returns[2]);
+                    local systemTimeEnd = os.epoch("utc");
+
+                    -- add system time to the total
+                    systemTime = systemTime + (systemTimeEnd - systemTimeStart);
 
                     if instr.status == "OK" then
                         tcb.state = "READY";
@@ -135,7 +168,12 @@ function Scheduler.run()
             end
 
             -- process events
+            local idleTimeStart = os.epoch("utc");
             local eventData = { os.pullEventRaw() };
+            local idleTimeEnd = os.epoch("utc");
+
+            idleTime = idleTime + (idleTimeEnd - idleTimeStart);
+
             local type = eventData[1];
             local param1 = eventData[2];
 
