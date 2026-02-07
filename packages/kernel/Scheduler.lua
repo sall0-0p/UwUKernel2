@@ -100,9 +100,9 @@ function Scheduler.run()
 
                 -- add running time to the process cpuTime;
                 local pcb = ProcessRegistry.get(tcb.pid);
-                pcb.cpuTime = pcb.cpuTime + (endTime - startTime);
-                tcb.cpuTime = tcb.cpuTime + (endTime - startTime);
-                runningTime = runningTime + (endTime - startTime);
+                pcb.cpuTime = pcb.cpuTime + (endTime - startTime) / 1000;
+                tcb.cpuTime = tcb.cpuTime + (endTime - startTime) / 1000;
+                runningTime = runningTime + (endTime - startTime) / 1000;
 
                 -- handle traps
                 if (not ok) then
@@ -118,6 +118,9 @@ function Scheduler.run()
                     -- preempted
                     tcb.state = "READY";
                     table.insert(delayedThreads, tid);
+                elseif (trap == "EXIT") then
+                    -- thread finished
+                    ThreadManager.terminate(tid, returns[1])
                 elseif (trap == "SYSCALL") then
                     -- syscall called
                     -- returns[1] here corresponds to syscall id;
@@ -127,7 +130,7 @@ function Scheduler.run()
                     local systemTimeEnd = os.epoch("utc");
 
                     -- add system time to the total
-                    systemTime = systemTime + (systemTimeEnd - systemTimeStart);
+                    systemTime = systemTime + (systemTimeEnd - systemTimeStart) / 1000;
 
                     if instr.status == "OK" then
                         tcb.state = "READY";
@@ -173,7 +176,7 @@ function Scheduler.run()
             local eventData = { os.pullEventRaw() };
             local idleTimeEnd = os.epoch("utc");
 
-            idleTime = idleTime + (idleTimeEnd - idleTimeStart);
+            idleTime = idleTime + (idleTimeEnd - idleTimeStart) / 1000;
 
             local type = eventData[1];
             local param1 = eventData[2];
