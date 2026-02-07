@@ -53,7 +53,8 @@ function sys.info(tcb)
 
     return {
         version = require("version").string; -- os version
-        hardware = os.version(); -- cc version
+        craftos_version = os.version(); -- cc version, if someone needs for some emulator or smth
+        host = _G._HOST;
         build = require("version").build, -- os build
         uptime = os.clock(); -- time since computer was started
         startEpoch = times.startEpoch; -- time since scheduler started running
