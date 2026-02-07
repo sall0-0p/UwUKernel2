@@ -10,13 +10,6 @@ function sys.epoch(tcb, locale)
     return os.epoch(locale);
 end
 
----Sets an alarm for a specific in-game time (0.0 to 24.0).
----@param tcb Thread Thread calling the syscall.
----@param time number Time for alarm to be set to.
-function sys.alarm(tcb, time)
-    -- Implementation TODO: os.setAlarm(time)
-end
-
 ---Starts a system timer that fires after `duration` seconds.
 ---@param tcb Thread Thread calling the syscall.
 ---@param fd number File descriptor pointing to port, that timer should send message to.
@@ -26,6 +19,17 @@ function sys.timer(tcb, fd, duration, cookie)
     local pcb = ProcessRegistry.get(tcb.pid);
 
     return TimerManager.createTimer(pcb, fd, duration, cookie);
+end
+
+---Sets an alarm for a specific in-game time (0.0 to 24.0).
+---@param tcb Thread Thread calling the syscall.
+---@param fd number File descriptor pointing to port, that timer should send message to.
+---@param time number Time for alarm to be set to.
+---@param cookie any Optional payload.
+function sys.alarm(tcb, fd, time, cookie)
+    local pcb = ProcessRegistry.get(tcb.pid);
+
+    return TimerManager.createAlarm(pcb, fd, time, cookie)
 end
 
 ---Cancel timer or alarm based on file descriptor.
