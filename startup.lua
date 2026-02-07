@@ -43,6 +43,5 @@ local file = fs.open("/test.lua", "r");
 local test = file.readAll();
 file.close();
 
-ProcessManager.spawn(0, "/infiniteLoop.lua", {}, { blob = "local i = 1; while (true) do end" });
-ProcessManager.spawn(1, "/test.lua", {}, { blob = test, name = "testd" });
+ProcessManager.spawn(0, "/test.lua", {}, { blob = test, name = "testd" });
 Scheduler.run();

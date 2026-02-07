@@ -12,8 +12,9 @@ local IPCManager = {};
 ---Creates new port.
 ---Calling process gets receive right by default, by owning the process.
 ---@param pcb Process process that creates new port.
+---@param temporary boolean if port should be one time use (automatically cleaned up afterwards).
 ---@return number file descriptor of created port.
-function IPCManager.createPort(pcb)
+function IPCManager.createPort(pcb, temporary)
     -- create port
     local port = Port.new();
     local portObj = KernelObject.new("PORT", port);
@@ -38,6 +39,8 @@ function IPCManager.createPort(pcb)
         ObjectManager.release(sendRightId);
     end
 
+    port.temporary = temporary or false;
+
     -- link fd
     return ObjectManager.createHandle(pcb, receiveRightObj);
 end
@@ -58,7 +61,6 @@ function IPCManager.send(pcb, fd, payload, opts)
         error("EBADF: Invalid file descriptor.");
     end
 
-    print(globalId); -- outputs: 0
     local rightObj = ObjectManager.get(globalId);
     if (not rightObj) then error("EBADF: Invalid file descriptor.") end -- <-- errors here
 
@@ -164,6 +166,11 @@ function IPCManager.send(pcb, fd, payload, opts)
             ObjectManager.close(pcb, fd);
         end
 
+        -- close temporary port
+        if (port.temporary) then
+            IPCManager.close(pcb, fd);
+        end
+
         -- wake thread
         local receiver = table.remove(port.receivers, 1);
         Scheduler.wake(receiver, { true, { message } });
@@ -186,6 +193,99 @@ function IPCManager.send(pcb, fd, payload, opts)
 
     table.insert(port.queue, message);
     return false;
+end
+
+---Bypasses local handle lookups and permissions.
+---@param globalPortId number The target port's global registry ID.
+---@param payload table The data to send.
+---@param opts table|nil Options: { reply_global_id = number, transfer_global_ids = number[] }
+function IPCManager.sendKernelMessage(globalPortId, payload, opts)
+    local portObj = ObjectManager.get(globalPortId);
+    if not portObj or portObj.type ~= "PORT" then
+        return false, "EINTERNAL: Invalid kernel target port";
+    end
+
+    --- @type Port
+    local port = portObj.impl;
+    local recipient = ProcessRegistry.get(port.ownerPid);
+
+    if not recipient then
+        return false, "EINTERNAL: Port owner is dead";
+    end
+
+    if (#port.receivers == 0 and #port.queue >= port.capacity) then
+        return false, "EINTERNAL: Queue full";
+    end
+
+    local message = {
+        pid = 0,
+        data = payload,
+    }
+
+    if opts and opts.reply_global_id then
+        local replyObj = ObjectManager.get(opts.reply_global_id);
+        if replyObj and replyObj.type == "PORT" then
+            replyObj:retain();
+            message.globalReply = opts.reply_global_id;
+
+            table.insert(replyObj.impl.temporarySenders, recipient.pid);
+        end
+    end
+
+    if opts and opts.transfer_global_ids then
+        message.globalHandles = {};
+        for _, gId in ipairs(opts.transfer_global_ids) do
+            local obj = ObjectManager.get(gId);
+            if obj then
+                obj:retain();
+                table.insert(message.globalHandles, gId);
+            end
+        end
+    end
+
+    if (#port.receivers > 0) then
+        if (message.globalHandles) then
+            message.handles = {};
+            for _, gId in ipairs(message.globalHandles) do
+                local newFd = ObjectManager.link(recipient, gId);
+                table.insert(message.handles, newFd);
+
+                ObjectManager.get(gId):release();
+            end
+            message.globalHandles = nil;
+        end
+
+        if (message.globalReply) then
+            message.reply = ObjectManager.link(recipient, message.globalReply);
+            ObjectManager.get(message.globalReply):release();
+            message.globalReply = nil;
+        end
+
+        -- close temporary port
+        if (port.temporary) then
+            local process = ProcessRegistry.get(port.ownerPid)
+            local fd;
+
+            for i, v in pairs(process.handles) do
+                if (v == port.receiveRight) then
+                    fd = i;
+                end
+            end
+
+            if (process and fd) then
+                IPCManager.close(process, fd);
+            else
+                error("EINTERNAL: Failed to close temporary handler!");
+            end
+        end
+
+        local receiver = table.remove(port.receivers, 1);
+        Scheduler.wake(receiver, { true, { message } });
+        return true;
+    else
+        table.insert(port.queue, message);
+        return true;
+    end
 end
 
 ---Blocks until a message arrives on specific port.
@@ -241,6 +341,11 @@ function IPCManager.receive(pcb, fd)
         if (#port.blockedSenders > 0) then
             local senderTid = table.remove(port.blockedSenders, 1);
             Scheduler.wake(senderTid, { true, { }});
+        end
+
+        -- close temporary port
+        if (port.temporary) then
+            IPCManager.close(pcb, fd);
         end
 
         return message, "OK";

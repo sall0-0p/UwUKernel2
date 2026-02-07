@@ -8,6 +8,7 @@
 --- @field ownerPid number pid of a process that port belongs to
 --- @field sendRight number pointer to send right kernel object
 --- @field receiveRight number pointer to receive right kernel object
+--- @field temporary boolean if port has to be closed after one read
 local Port = {}
 Port.__index = Port;
 
@@ -20,6 +21,7 @@ function Port.new()
         ownerPid = nil,
         receiveRight = nil,
         sendRight = nil,
+        temporary = false,
 
         temporarySenders = {},
         blockedSenders = {},

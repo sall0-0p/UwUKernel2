@@ -8,7 +8,7 @@ local modules = {
     require("syscalls.ipc"),
     -- require("syscalls.fs"),
     -- require("syscalls.io"),
-    -- require("syscalls.sys"),
+     require("syscalls.sys"),
     -- require("syscalls.dev"),
     -- require("syscalls.sync"),
 };

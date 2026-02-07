@@ -523,14 +523,14 @@ If called with `local`, returns the number of milliseconds since 1 January 1970 
 1. Invalid locale provided.
 
 ---
-`97` | `sys.timer(duration: number) -> id: number`
+`97` | `sys.timer(duration: number) -> fd: number`
 Starts a system timer that fires after `duration` seconds.
 
  **Arguments:**
 `duration` - time in seconds until timer should fire.
 
 **Returns:**
-`id` - id of a timer. 
+`fd` - fd of a timer. 
 
 ---
 `98` | `sys.alarm(time: number) -> id: number`
@@ -543,11 +543,11 @@ Sets an alarm for a specific in-game time (0.0 to 24.0).
 `id` - id of alarm. 
 
 ---
-`99` | `sys.cancel(id: number) -> void`
-Cancel timer or alarm based on their id.
+`99` | `sys.cancel(fd: number) -> void`
+Cancel timer or alarm based on file descriptor.
 
  **Arguments:**
-`id` - id of alarm or timer to be cancelled.
+`fd` - fd of alarm or timer to be cancelled.
 
 ---
 `100` | `sys.log(level: string, msg: string) -> void`

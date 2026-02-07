@@ -102,5 +102,19 @@
 --print(textutils.serialize(call(37, port)));
 
 --
-print(textutils.serialize(call(8)));
-print(textutils.serialize(call(4, 0)));
+--print(textutils.serialize(call(8)));
+--print(textutils.serialize(call(4, 0)));
+
+local timer1 = call(97, 1, "HELLO WORLD!");
+print("Created timer 1 with id:", timer1);
+local event = call(34, timer1);
+print("Received timer: ")
+print(textutils.serialize(event));
+
+local timer2 = call(97, 1, "HELLO BOBERS!");
+print("Created timer 2 with id:", timer2);
+call(99, timer2);
+print("Cancelled timer 2!");
+print("Trying to listen to non existant timer 2!");
+local event = call(34, timer2);
+print(textutils.serialize(event));

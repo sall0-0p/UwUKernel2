@@ -69,6 +69,7 @@ end
 --- Starts the scheduler.
 function Scheduler.run()
     local ThreadManager = require("ThreadManager");
+    local TimerManager = require("TimerManager");
     local Dispatcher = require("Dispatcher");
     local delayedThreads = {};
 
@@ -182,8 +183,13 @@ function Scheduler.run()
                 break;
             end
 
+
             if type ~= "kernel_yield" then
                 -- TODO: Process event.
+                -- TODO: Move to event manager!
+                if (type == "timer") then
+                    TimerManager.handleEvent(param1);
+                end
             end
         end
     end
