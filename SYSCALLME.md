@@ -195,6 +195,7 @@ Sends a message to a port. This is non-blocking by default, unless queue is full
 - `timeout: number` - Max wait time in seconds, if queue is full. `0` to fail immediately.
 - `reply_port: number` - A handle to send back to the receiver.
 - `transfer: number[]` - List of handles to move to the receiver. Kernel removes them from caller and creates new handles in the receiver space.
+- `type: string` - Event type, used for filtering, default is `"IPC"`.
 
 (Note: when handles are transferred, they are copied (kernel object is not actually copied tho), with exception of ports with receive right. Using transfer to pass port will give up your receive right. To grant another process right to send messages to the port - use `ipc.transfer` instead)
 

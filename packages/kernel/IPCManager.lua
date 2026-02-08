@@ -109,6 +109,7 @@ function IPCManager.send(pcb, fd, payload, opts)
         pid = pcb.pid,
         globalReply = globalReplyPort,
         data = payload,
+        type = (opts or {}).type or "IPC",
     }
 
     -- build the message object (handles)
@@ -226,6 +227,7 @@ function IPCManager.sendKernelMessage(globalPortId, payload, opts)
     local message = {
         pid = 0,
         data = payload,
+        type = (opts or {}).type or "IPC",
     }
 
     if opts and opts.reply_global_id then

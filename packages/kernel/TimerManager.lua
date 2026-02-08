@@ -81,9 +81,10 @@ function TimerManager.handleEvent(type, id)
         if (not port or port.type ~= "PORT") then return end;
 
         IPCManager.sendKernelMessage(portId, {
-            type = "TIMER",
             id = timer.referenceId,
             cookie = timer.cookie,
+        }, {
+            type = "TIMER",
         })
     elseif (type == "alarm") then
         local alarm = alarms[id];
@@ -94,9 +95,10 @@ function TimerManager.handleEvent(type, id)
         if (not port or port.type ~= "PORT") then return end;
 
         IPCManager.sendKernelMessage(portId, {
-            type = "ALARM",
             id = alarm.referenceId,
             cookie = alarm.cookie,
+        }, {
+            type = "ALARM",
         })
     end
 end

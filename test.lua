@@ -129,20 +129,20 @@ local threadB = call(9, printSymbols, { "-" });
 --call(34, port);
 --print("This should not be written!");
 
---local port = call(32); -- ipc.create()
---print("Ordering timers!");
---call(97, port, 1, "Hello from 1s timer!"); -- sys.timer(port, 1, "cookie");
---call(97, port, 3, "Hello from 3s timer!"); -- sys.timer(port, 3, "cookie");
---call(97, port, 5, "Hello from 5s timer!"); -- sys.timer(port, 5, "cookie");
---
---while true do
---    local message = call(34, port); -- ipc.receive(port);
---    if (message.data.type == "TIMER") then
---        print(message.data.cookie);
---    else
---        print(textutils.serialize(message));
---    end
---end
+local port = call(32); -- ipc.create()
+print("Ordering timers!");
+call(97, port, 1, "Hello from 1s timer!"); -- sys.timer(port, 1, "cookie");
+call(97, port, 3, "Hello from 3s timer!"); -- sys.timer(port, 3, "cookie");
+call(97, port, 5, "Hello from 5s timer!"); -- sys.timer(port, 5, "cookie");
+
+while true do
+    local message = call(34, port); -- ipc.receive(port);
+    if (message.type == "TIMER") then
+        print(message.data.cookie);
+    else
+        print(textutils.serialize(message));
+    end
+end
 
 -- something gemini made
 local function test_cpu_metrics()
