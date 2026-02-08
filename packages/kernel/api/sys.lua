@@ -1,6 +1,6 @@
-local TimerManager = require("TimerManager");
-local EventManager = require("EventManager");
-local ProcessRegistry = require("process.ProcessRegistry");
+local TimerManager = require("misc.TimerManager");
+local EventManager = require("misc.EventManager");
+local ProcessRegistry = require("proc.registry.ProcessRegistry");
 
 local sys = {};
 
@@ -61,7 +61,7 @@ end
 ---Returns a table containing global system information.
 ---@param tcb Thread Thread calling the syscall.
 function sys.info(tcb)
-    local Scheduler = require("Scheduler");
+    local Scheduler = require("core.Scheduler");
     local times = Scheduler.getTimeUsage();
 
     return {

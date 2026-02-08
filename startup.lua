@@ -31,13 +31,13 @@ end
 package.path = package.path .. ";/hdd1/kernel/?.lua;/hdd1/kernel/?/init.lua"
 
 --- @type ProcessManager
-local ProcessManager = require("ProcessManager")
+local ProcessManager = require("proc.ProcessManager")
 
 --- @type ProcessRegistry
-local ProcessRegistry = require("process.ProcessRegistry")
+local ProcessRegistry = require("proc.registry.ProcessRegistry")
 
 --- @type Scheduler
-local Scheduler = require("Scheduler")
+local Scheduler = require("core.Scheduler")
 
 local file = fs.open("/test.lua", "r");
 local test = file.readAll();

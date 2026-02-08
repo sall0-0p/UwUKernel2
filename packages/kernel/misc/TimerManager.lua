@@ -1,5 +1,5 @@
-local ObjectManager = require("objects.ObjectManager");
-local IPCManager = require("IPCManager");
+local ObjectManager = require("core.ObjectManager");
+local IPCManager = require("ipc.IPCManager");
 
 --- @class TimerManager
 local TimerManager = {};

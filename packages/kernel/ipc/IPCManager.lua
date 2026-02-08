@@ -1,10 +1,10 @@
-local ObjectManager = require("objects.ObjectManager");
-local KernelObject = require("objects.KernelObject");
-local Port = require("ipc.Port");
-local ReceiveRight = require("ipc.ReceiveRight");
-local SendRight = require("ipc.SendRight");
-local Scheduler = require("Scheduler");
-local ProcessRegistry = require("process.ProcessRegistry");
+local ObjectManager = require("core.ObjectManager");
+local KernelObject = require("core.KernelObject");
+local Port = require("ipc.classes.Port");
+local ReceiveRight = require("ipc.classes.ReceiveRight");
+local SendRight = require("ipc.classes.SendRight");
+local Scheduler = require("core.Scheduler");
+local ProcessRegistry = require("proc.registry.ProcessRegistry");
 
 --- @class IPCManager
 local IPCManager = {};

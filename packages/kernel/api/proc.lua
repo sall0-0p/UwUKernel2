@@ -1,5 +1,5 @@
-local ProcessManager = require("ProcessManager");
-local ProcessRegistry = require("process.ProcessRegistry");
+local ProcessManager = require("proc.ProcessManager");
+local ProcessRegistry = require("proc.registry.ProcessRegistry");
 local Utils = require("misc.Utils");
 
 local proc = {};

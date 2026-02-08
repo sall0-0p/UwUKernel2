@@ -1,4 +1,4 @@
-local ObjectManager = require("objects.ObjectManager");
+local ObjectManager = require("core.ObjectManager");
 
 --- @class ReceiveRight
 --- @field portId number global id of port we are referencing

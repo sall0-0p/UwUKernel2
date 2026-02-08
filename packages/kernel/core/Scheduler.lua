@@ -1,5 +1,5 @@
-local ThreadRegistry = require("process.ThreadRegistry");
-local ProcessRegistry = require("process.ProcessRegistry");
+local ThreadRegistry = require("proc.registry.ThreadRegistry");
+local ProcessRegistry = require("proc.registry.ProcessRegistry");
 
 -- Preemption
 local QUANTUM_TIME = 0.05;
@@ -68,9 +68,9 @@ end
 
 --- Starts the scheduler.
 function Scheduler.run()
-    local ThreadManager = require("ThreadManager");
-    local EventManager = require("EventManager");
-    local Dispatcher = require("Dispatcher");
+    local ThreadManager = require("proc.ThreadManager");
+    local EventManager = require("misc.EventManager");
+    local Dispatcher = require("core.Dispatcher");
     local delayedThreads = {};
 
     startEpoch = os.epoch("utc");

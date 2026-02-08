@@ -1,7 +1,7 @@
-local ThreadManager = require("ThreadManager");
-local ThreadRegistry = require("process.ThreadRegistry");
-local ProcessRegistry = require("process.ProcessRegistry");
-local Scheduler = require("Scheduler");
+local ThreadManager = require("proc.ThreadManager");
+local ThreadRegistry = require("proc.registry.ThreadRegistry");
+local ProcessRegistry = require("proc.registry.ProcessRegistry");
+local Scheduler = require("core.Scheduler");
 local Utils = require("misc.Utils")
 
 local thread = {};

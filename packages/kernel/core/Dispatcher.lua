@@ -3,14 +3,14 @@ local Dispatcher = {};
 local syscalls = {};
 
 local modules = {
-    require("syscalls.proc"),
-    require("syscalls.thread"),
-    require("syscalls.ipc"),
-    -- require("syscalls.fs"),
-    -- require("syscalls.io"),
-     require("syscalls.sys"),
-    -- require("syscalls.dev"),
-    -- require("syscalls.sync"),
+    require("api.proc"),
+    require("api.thread"),
+    require("api.ipc"),
+    -- require("api.fs"),
+    -- require("api.io"),
+     require("api.sys"),
+    -- require("api.dev"),
+    -- require("api.sync"),
 };
 
 for _, module in pairs(modules) do

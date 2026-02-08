@@ -1,10 +1,10 @@
-local ProcessRegistry = require("process.ProcessRegistry");
-local Process = require("process.Process");
-local ObjectManager = require("objects.ObjectManager");
-local ThreadManager = require("ThreadManager");
-local Scheduler = require("Scheduler");
+local ProcessRegistry = require("proc.registry.ProcessRegistry");
+local Process = require("proc.classes.Process");
+local ObjectManager = require("core.ObjectManager");
+local ThreadManager = require("proc.ThreadManager");
+local Scheduler = require("core.Scheduler");
 local Utils = require("misc.Utils");
-local IPCManager = require("IPCManager");
+local IPCManager = require("ipc.IPCManager");
 
 --- @class ProcessManager
 local ProcessManager = {};

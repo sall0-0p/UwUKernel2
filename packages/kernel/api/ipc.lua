@@ -1,5 +1,5 @@
-local IPCManager = require("IPCManager");
-local ProcessRegistry = require("process.ProcessRegistry");
+local IPCManager = require("ipc.IPCManager");
+local ProcessRegistry = require("proc.registry.ProcessRegistry");
 
 local ipc = {};
 

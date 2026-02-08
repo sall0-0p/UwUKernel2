@@ -1,6 +1,6 @@
-local TimerManager = require("TimerManager");
-local IPCManager = require("IPCManager");
-local ObjectManager = require("objects.ObjectManager");
+local TimerManager = require("misc.TimerManager");
+local IPCManager = require("ipc.IPCManager");
+local ObjectManager = require("core.ObjectManager");
 
 --- @class EventManager
 local EventManager = {};

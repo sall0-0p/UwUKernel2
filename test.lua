@@ -197,13 +197,12 @@ print("");
 local inputPort = call(32);
 call(102, "key", inputPort);
 print("Called bind, starting to listen!");
-print("HELLO WORLD!");
 local data = call(34, inputPort);
 print(data);
 print("Received key!");
 print(textutils.serialize(data));
 
 local exitPort = call(32);
-local exitTimer = call(97, exitPort, 10);
+local exitTimer = call(97, exitPort, 60);
 call(34, exitPort);
 call(104);
