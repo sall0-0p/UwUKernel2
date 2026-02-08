@@ -1,8 +1,10 @@
 # clean
-rm -rf /Users/bucket/Library/Application\ Support/CraftOS-PC/computer/0
+rm -rf /Users/bucket/Library/Application\ Support/CraftOS-PC/computer/0/SystemVolume
+rm -rf /Users/bucket/Library/Application\ Support/CraftOS-PC/computer/0/startup.lua
 rm -rf out/
 
-mkdir -p out/hdd1
+mkdir -p out/SystemVolume/System
+mkdir -p out/SystemVolume/Library
 
 # version tracking
 BUILD_FILE=".build"
@@ -16,13 +18,19 @@ echo "$BUILD" > "$BUILD_FILE"
 
 echo "Deploying Build #$BUILD..."
 
-# copying
-cp -R packages/kernel out/hdd1/kernel
-cp startup.lua out/startup.lua
+# copying kernel
+cp -R packages/kernel out/SystemVolume/System/kernel
+cp packages/boot/startup.lua out/startup.lua
 cp test.lua out/test.lua
 
+# copying launchd
+cp -R packages/launchd out/SystemVolume/System/launchd
+
+# copying system library
+cp -R packages/syslib out/SystemVolume/Library/syslib
+
 # generate version.lua
-cat > out/hdd1/kernel/version.lua <<EOF
+cat > out/SystemVolume/System/kernel/version.lua <<EOF
 return {
     major = "$VERSION_MAJOR",
     build = $BUILD,
@@ -31,7 +39,7 @@ return {
 EOF
 
 # deploy
-cp -R out /Users/bucket/Library/Application\ Support/CraftOS-PC/computer/0
+cp -R out/* /Users/bucket/Library/Application\ Support/CraftOS-PC/computer/0/
 echo "Deploy complete!"
 
 # craftos-pc via CLI

@@ -27,21 +27,11 @@ function _G.debug.serialize(obj)
     return textutils.serialize(sanitize(obj))
 end
 
--- boot
-package.path = package.path .. ";/hdd1/kernel/?.lua;/hdd1/kernel/?/init.lua"
+-- get launchd code
+local launchd = fs.open("/SystemVolume/System/launchd/init.lua", "r");
+local blob = launchd.readAll();
+launchd.close();
 
---- @type ProcessManager
-local ProcessManager = require("proc.ProcessManager")
-
---- @type ProcessRegistry
-local ProcessRegistry = require("proc.registry.ProcessRegistry")
-
---- @type Scheduler
-local Scheduler = require("core.Scheduler")
-
-local file = fs.open("/test.lua", "r");
-local test = file.readAll();
-file.close();
-
-ProcessManager.spawn(0, "/test.lua", {}, { blob = test, name = "testd" });
-Scheduler.run();
+local kernel = require(".SystemVolume.System.kernel");
+kernel.createBoot(blob);
+kernel.run();
