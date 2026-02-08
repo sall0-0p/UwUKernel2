@@ -1,4 +1,5 @@
 local TimerManager = require("TimerManager");
+local EventManager = require("EventManager");
 local ProcessRegistry = require("process.ProcessRegistry");
 
 local sys = {};
@@ -7,6 +8,7 @@ local sys = {};
 ---@param tcb Thread Thread calling the syscall.
 ---@param locale string locale to get time for, defaults to `ingame` if not set.
 function sys.epoch(tcb, locale)
+    assert(type(locale) == "string", "EINVAL: Bad argument #1: Locale must be string.");
     return os.epoch(locale);
 end
 
@@ -16,6 +18,9 @@ end
 ---@param duration number Duration in seconds after which timer should fire.
 ---@param cookie any Optional payload.
 function sys.timer(tcb, fd, duration, cookie)
+    assert(type(fd) == "number", "EINVAL: Bad argument #1: File descriptor must be a number.");
+    assert(type(duration) == "number", "EINVAL: Bad argument #2: Duration must be a number.");
+    assert(duration >= 0, "EINVAL: Bad argument #2: Duration must be positive number.");
     local pcb = ProcessRegistry.get(tcb.pid);
 
     return TimerManager.createTimer(pcb, fd, duration, cookie);
@@ -27,6 +32,9 @@ end
 ---@param time number Time for alarm to be set to.
 ---@param cookie any Optional payload.
 function sys.alarm(tcb, fd, time, cookie)
+    assert(type(fd) == "number", "EINVAL: Bad argument #1: File descriptor must be a number.");
+    assert(type(time) == "number","EINVAL: Bad argument #2: Time must be a number.");
+    assert(time >= 0, "EINVAL: Bad argument #2: Time must be positive number.");
     local pcb = ProcessRegistry.get(tcb.pid);
 
     return TimerManager.createAlarm(pcb, fd, time, cookie)
@@ -36,6 +44,7 @@ end
 ---@param tcb Thread Thread calling the syscall.
 ---@param id number Id of timer or alarm that we should cancel.
 function sys.cancel(tcb, id)
+    assert(type(id) == "number", "EINVAL: Bad argument #1: Id must be a number.");
     local pcb = ProcessRegistry.get(tcb.pid);
 
     return TimerManager.cancel(pcb, id);
@@ -75,7 +84,9 @@ end
 ---@param event string Event name.
 ---@param port number Handle id of the port to receive events.
 function sys.bind_event(tcb, event, port)
-    -- Implementation TODO: Register event listener in kernel
+    local pcb = ProcessRegistry.get(tcb.pid);
+    EventManager.bindEvent(pcb, port, event);
+    return { status = "OK" };
 end
 
 ---Releases the exclusive subscription for an event type.
@@ -83,7 +94,9 @@ end
 ---@param tcb Thread Thread calling the syscall.
 ---@param event string Event name.
 function sys.unbind_event(tcb, event)
-    -- Implementation TODO: Unregister event listener
+    local pcb = ProcessRegistry.get(tcb.pid);
+    EventManager.unbindEvent(pcb, event);
+    return { status = "OK" };
 end
 
 ---Shuts down the computer. Requires root permissions.

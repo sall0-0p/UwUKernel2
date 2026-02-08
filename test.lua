@@ -39,17 +39,17 @@ print("");
 --local currentTid = call(11);
 --print(currentTid);
 --
-local function printSymbols(symbol, length)
-    local i = 0;
-    while i < (length or 20) do
-        write(symbol);
-        i = i + 1;
-    end
-    print();
-end
-
-local threadA = call(9, printSymbols, { "*" });
-local threadB = call(9, printSymbols, { "-" });
+--local function printSymbols(symbol, length)
+--    local i = 0;
+--    while i < (length or 20) do
+--        write(symbol);
+--        i = i + 1;
+--    end
+--    print();
+--end
+--
+--local threadA = call(9, printSymbols, { "*" });
+--local threadB = call(9, printSymbols, { "-" });
 --
 --local threadList = call(12);
 --print(textutils.serialize(threadList));
@@ -129,73 +129,81 @@ local threadB = call(9, printSymbols, { "-" });
 --call(34, port);
 --print("This should not be written!");
 
-local port = call(32); -- ipc.create()
-print("Ordering timers!");
-call(97, port, 1, "Hello from 1s timer!"); -- sys.timer(port, 1, "cookie");
-call(97, port, 3, "Hello from 3s timer!"); -- sys.timer(port, 3, "cookie");
-call(97, port, 5, "Hello from 5s timer!"); -- sys.timer(port, 5, "cookie");
-
-while true do
-    local message = call(34, port); -- ipc.receive(port);
-    if (message.type == "TIMER") then
-        print(message.data.cookie);
-    else
-        print(textutils.serialize(message));
-    end
-end
+--local port = call(32); -- ipc.create()
+--print("Ordering timers!");
+--call(97, port, 1, "Hello from 1s timer!"); -- sys.timer(port, 1, "cookie");
+--call(97, port, 3, "Hello from 3s timer!"); -- sys.timer(port, 3, "cookie");
+--call(97, port, 5, "Hello from 5s timer!"); -- sys.timer(port, 5, "cookie");
+--
+--while true do
+--    local message = call(34, port); -- ipc.receive(port);
+--    if (message.type == "TIMER") then
+--        print(message.data.cookie);
+--    else
+--        print(textutils.serialize(message));
+--    end
+--end
 
 -- something gemini made
-local function test_cpu_metrics()
-    print("--- CPU METRICS TEST ---")
-
-    -- 1. Get initial kernel stats
-    local start_info = call(101)
-    print("Start Uptime: " .. start_info.uptime)
-    print("Start Running: " .. start_info.runningTime)
-
-    -- 2. Define the heavy lifter
-    -- We use a local function here, but we pass it to the thread.
-    -- (The kernel environment copying handles upvalues or pure functions logic)
-    local function calculate_pi(iterations)
-        local pi = 0
-        local sign = 1
-        for i = 0, iterations do
-            -- Leibniz formula: 4 * (1 - 1/3 + 1/5 - ...)
-            pi = pi + sign * (4 / (2 * i + 1))
-            sign = -sign
-        end
-        return pi
-    end
-
-    -- 3. Run it in a separate thread (Syscall 9)
-    -- 1,000,000 iterations should take a second or two on CraftOS-PC
-    local iters = 1000000
-    print("Spawning thread to calculate Pi (" .. iters .. " iters)...")
-    local tid = call(9, calculate_pi, { iters })
-
-    -- 4. Wait for it to finish (Syscall 10)
-    local result = call(10, tid)
-    print("Calculation complete!")
-    print("Result: ", result)
-
-    -- 5. Get final stats and compare
-    local end_info = call(101)
-
-    local run_delta = end_info.runningTime - start_info.runningTime
-    local sys_delta = end_info.systemTime - start_info.systemTime
-    local up_delta = end_info.uptime - start_info.uptime
-
-    print("\n--- RESULTS ---")
-    print(string.format("Wall Time (Uptime): %.3fs", up_delta))
-    print(string.format("User Time (Running): %.3fs", run_delta))
-    print(string.format("Kernel Time (System): %.3fs", sys_delta))
-    print("----------------")
-end
-
-test_cpu_metrics();
-
---call(10, threadA);
---call(10, threadB);
+--local function test_cpu_metrics()
+--    print("--- CPU METRICS TEST ---")
 --
---print(textutils.serialize(call(101)));
---print(call(96, "utc"));
+--    -- 1. Get initial kernel stats
+--    local start_info = call(101)
+--    print("Start Uptime: " .. start_info.uptime)
+--    print("Start Running: " .. start_info.runningTime)
+--
+--    -- 2. Define the heavy lifter
+--    -- We use a local function here, but we pass it to the thread.
+--    -- (The kernel environment copying handles upvalues or pure functions logic)
+--    local function calculate_pi(iterations)
+--        local pi = 0
+--        local sign = 1
+--        for i = 0, iterations do
+--            -- Leibniz formula: 4 * (1 - 1/3 + 1/5 - ...)
+--            pi = pi + sign * (4 / (2 * i + 1))
+--            sign = -sign
+--        end
+--        return pi
+--    end
+--
+--    -- 3. Run it in a separate thread (Syscall 9)
+--    -- 1,000,000 iterations should take a second or two on CraftOS-PC
+--    local iters = 1000000
+--    print("Spawning thread to calculate Pi (" .. iters .. " iters)...")
+--    local tid = call(9, calculate_pi, { iters })
+--
+--    -- 4. Wait for it to finish (Syscall 10)
+--    local result = call(10, tid)
+--    print("Calculation complete!")
+--    print("Result: ", result)
+--
+--    -- 5. Get final stats and compare
+--    local end_info = call(101)
+--
+--    local run_delta = end_info.runningTime - start_info.runningTime
+--    local sys_delta = end_info.systemTime - start_info.systemTime
+--    local up_delta = end_info.uptime - start_info.uptime
+--
+--    print("\n--- RESULTS ---")
+--    print(string.format("Wall Time (Uptime): %.3fs", up_delta))
+--    print(string.format("User Time (Running): %.3fs", run_delta))
+--    print(string.format("Kernel Time (System): %.3fs", sys_delta))
+--    print("----------------")
+--end
+--
+--test_cpu_metrics();
+
+local inputPort = call(32);
+call(102, "key", inputPort);
+print("Called bind, starting to listen!");
+print("HELLO WORLD!");
+local data = call(34, inputPort);
+print(data);
+print("Received key!");
+print(textutils.serialize(data));
+
+local exitPort = call(32);
+local exitTimer = call(97, exitPort, 10);
+call(34, exitPort);
+call(104);

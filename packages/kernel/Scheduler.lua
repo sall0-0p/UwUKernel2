@@ -69,7 +69,7 @@ end
 --- Starts the scheduler.
 function Scheduler.run()
     local ThreadManager = require("ThreadManager");
-    local TimerManager = require("TimerManager");
+    local EventManager = require("EventManager");
     local Dispatcher = require("Dispatcher");
     local delayedThreads = {};
 
@@ -178,21 +178,15 @@ function Scheduler.run()
 
             idleTime = idleTime + (idleTimeEnd - idleTimeStart) / 1000;
 
-            local type = eventData[1];
-            local param1 = eventData[2];
+            local type = table.remove(eventData, 1);
 
             if type == "terminate" then
                 print("Terminating!");
                 break;
             end
 
-
             if type ~= "kernel_yield" then
-                -- TODO: Process event.
-                -- TODO: Move to event manager!
-                if (type == "timer") then
-                    TimerManager.handleEvent(param1);
-                end
+                EventManager.handleEvent(type, eventData);
             end
         end
     end

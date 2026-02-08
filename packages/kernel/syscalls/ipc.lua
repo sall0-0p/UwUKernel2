@@ -31,7 +31,7 @@ end
 ---@param tcb Thread Thread calling the syscall.
 ---@param port number File descriptor pointing to port.
 ---@param opts table Options.
-function ipc.receive(tcb, port, opts)
+function ipc.receive(tcb, port, opts);
     local process = ProcessRegistry.get(tcb.pid);
     local message, status = IPCManager.receive(process, port);
 
