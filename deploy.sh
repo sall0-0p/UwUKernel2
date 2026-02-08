@@ -33,3 +33,17 @@ EOF
 # deploy
 cp -R out /Users/bucket/Library/Application\ Support/CraftOS-PC/computer/0
 echo "Deploy complete!"
+
+# craftos-pc via CLI
+if [[ "$1" == "--cli" ]]; then
+    echo "Launching CraftOS-PC (CLI Mode)..."
+    CRAFTOS_APP="/Applications/CraftOS-PC.app/Contents/MacOS/craftos"
+    if command -v craftos &> /dev/null; then
+      craftos --cli --id 0
+    elif [ -f "$CRAFTOS_APP" ]; then
+      "$CRAFTOS_APP" --cli --id 0
+    else
+        echo "Error: Could not find 'craftos' executable."
+        echo "Please add it to your PATH or ensure it is in /Applications."
+    fi
+fi
