@@ -9,7 +9,7 @@ local modules = {
     -- require("api.fs"),
     -- require("api.io"),
      require("api.sys"),
-    -- require("api.dev"),
+     require("api.dev"),
     -- require("api.sync"),
 };
 

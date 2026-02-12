@@ -5,6 +5,8 @@ local Kernel = {};
 
 function Kernel.run()
     local Scheduler = require("core.Scheduler");
+    local DeviceManager = require("dev.DeviceManager");
+    DeviceManager.onStartup();
 
     Scheduler.run();
 end

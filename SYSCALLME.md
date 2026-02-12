@@ -633,8 +633,8 @@ Returns:
 3. Process handle limit reached.
 
 ---
-`107` | `dev.invoke(handle: number, method: string, ...args) -> ...result`
-Synchronously calls a method on the native devide associated with a handle.
+`107` | `dev.call(handle: number, method: string, ...args) -> ...result`
+Synchronously calls a method on the native device associated with a handle.
 
 **Arguments:**
 `handle` - device handle provided via `dev.open`.

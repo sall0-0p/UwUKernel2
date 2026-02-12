@@ -1,6 +1,7 @@
 local TimerManager = require("misc.TimerManager");
 local IPCManager = require("ipc.IPCManager");
 local ObjectManager = require("core.ObjectManager");
+local DeviceManager = require("dev.DeviceManager");
 
 --- @class EventManager
 local EventManager = {};
@@ -15,6 +16,10 @@ function EventManager.handleEvent(event, args)
     if (event == "timer" or event == "alarm") then
         TimerManager.handleEvent(event, args[1]);
         return;
+    end
+
+    if (event == "peripheral" or event == "peripheral_detach") then
+        DeviceManager.onEvent(event, args);
     end
 
     local globalId = binds[event];
@@ -41,6 +46,10 @@ function EventManager.bindEvent(pcb, fd, type)
     local rightObj = ObjectManager.get(globalId);
     if (not rightObj or rightObj.type ~= "RECEIVE_RIGHT") then
         error("EPERM: Descriptor is not a receive right.");
+    end
+
+    if (binds[type]) then
+        error("ESMTH: Someone is already bound to this event!");
     end
 
     local portId = rightObj.impl.portId;
