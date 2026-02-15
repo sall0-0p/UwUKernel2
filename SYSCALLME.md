@@ -304,6 +304,9 @@ Reads data from the file.
 	 `"*a"`: Read all of file contents starting from cursor.
 `offset` - if provided, performs a pread, incompatible with `*l`
 
+>>> ![NOTE]
+> fmt to be changed to number of bits, advanced reads ot be moved into userspace!
+
 **Returns:**
 `data` - the string to read, `nil` if reached EOF.
 
