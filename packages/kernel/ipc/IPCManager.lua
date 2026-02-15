@@ -81,7 +81,7 @@ function IPCManager.send(pcb, fd, payload, opts)
         error("EINTERNAL: Port cannot be orphaned.");
     end
 
-    if (#port.receivers == 0 and #port.queue >= port.capacity) then
+    if (#port.receivers == 0 and #port.queue >= port.capacity and not (port.isKernelCallback and port.callback)) then
         return true, port, recipient;
     end
 
@@ -128,6 +128,34 @@ function IPCManager.send(pcb, fd, payload, opts)
             table.insert(message.globalHandles, gId);
             ObjectManager.close(pcb, v);
         end
+    end
+
+    -- callbacks
+    if (port.isKernelCallback and port.callback) then
+        local success, err = pcall(port.callback, message);
+        if not success then
+            error("EINTERNAL: Kernel Callback Error: " .. tostring(err));
+        end
+
+        -- Handle one-time senders (reply ports)
+        local oneTimeUse = false;
+        for i, v in pairs(port.temporarySenders) do
+            if (v == pcb.pid) then
+                oneTimeUse = true;
+                table.remove(port.temporarySenders, i);
+                break;
+            end
+        end
+
+        if (oneTimeUse) then
+            ObjectManager.close(pcb, fd);
+        end
+
+        if (port.temporary) then
+            IPCManager.close(pcb, fd);
+        end
+
+        return false, port, recipient;
     end
 
     -- send it
@@ -220,7 +248,7 @@ function IPCManager.sendKernelMessage(globalPortId, payload, opts)
         return false, "EINTERNAL: Port owner is dead";
     end
 
-    if (#port.receivers == 0 and #port.queue >= port.capacity) then
+    if (#port.receivers == 0 and #port.queue >= port.capacity and not (port.isKernelCallback and port.callback)) then
         return false, "EINTERNAL: Queue full";
     end
 
@@ -249,6 +277,30 @@ function IPCManager.sendKernelMessage(globalPortId, payload, opts)
                 table.insert(message.globalHandles, gId);
             end
         end
+    end
+
+    -- callbacks
+    if (port.isKernelCallback and port.callback) then
+        local success, err = pcall(port.callback, message);
+        if not success then
+            error("EINTERNAL: Kernel Callback Error: " .. tostring(err));
+        end
+
+        if (port.temporary) then
+            local process = ProcessRegistry.get(port.ownerPid)
+            local fd;
+
+            for i, v in pairs(process.handles) do
+                if (v == port.receiveRight) then
+                    fd = i;
+                end
+            end
+
+            if (process and fd) then
+                IPCManager.close(process, fd);
+            end
+        end
+        return true;
     end
 
     if (#port.receivers > 0) then
