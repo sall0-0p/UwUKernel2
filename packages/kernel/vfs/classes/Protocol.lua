@@ -9,10 +9,11 @@ VFSProtocol.Methods = {
     STAT = "VFS_STAT",
     LIST = "VFS_LIST",
     MKDIR = "VFS_MKDIR",
-    DELETE = "VFS_DELETE",
+    REMOVE = "VFS_REMOVE",
     RENAME = "VFS_RENAME",
     COPY = "VFS_COPY",
-    SET = "VFS_SET",
+    SETATTR = "VFS_SETATTR",
+    IOCTL = "VFS_IOCTL"
 }
 
 VFSProtocol.Status = {

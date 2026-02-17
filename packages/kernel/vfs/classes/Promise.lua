@@ -2,7 +2,7 @@ local ProcessRegistry = require("proc.registry.ProcessRegistry");
 local IPCManager = require("ipc.IPCManager");
 local ObjectManager = require("core.ObjectManager");
 local Scheduler = require("core.Scheduler");
-local VFSProtocol = require("vfs.Protocol");
+local VFSProtocol = require("vfs.classes.Protocol");
 
 --- @class Promise
 local Promise = {};
@@ -67,3 +67,5 @@ function Promise.send(driverPortId, method, payload, transform)
         target = driverPortId
     }
 end
+
+return Promise;

@@ -5,6 +5,7 @@
 ---@field uid number Real User ID
 ---@field euid number Effective User ID
 ---@field gid number Primary Group ID
+---@fiekd egid number Effective Group ID
 ---@field groups number[] Supplementary Group IDs
 ---@field state "ALIVE"|"ZOMBIE"|"STOPPED"
 ---@field exitCode number|nil Exit status
@@ -31,6 +32,7 @@ function Process.new(pid, ppid, name, uid, gid)
         uid = uid or 0,
         euid = uid or 0,
         gid = gid or 0,
+        egid = gid or 0,
         groups = {},
 
         state = "ALIVE",

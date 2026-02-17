@@ -12,17 +12,19 @@ end
 ---Resolves port of a mount point with longest prefix.
 ---@param path string path to resolve path for.
 ---@return number|nil global id of a resolved PORT.
+---@return string|nil relative path to a mount point.
 function MountRegistry.resolve(path)
     --- @type number|nil
     local bestMatch = nil;
     local longestLen = -1;
 
+    -- find best match
     for mountPath, portId in pairs(mounts) do
         if path:find(mountPath, 1, true) == 1 then
             local mountLen = #mountPath;
             local nextChar = path:sub(mountLen + 1, mountLen + 1);
 
-            if nextChar == "" or nextChar == "/" then
+            if mountPath == "/" or nextChar == "" or nextChar == "/" then
                 if mountLen > longestLen then
                     longestLen = mountLen;
                     bestMatch = portId;
@@ -31,7 +33,16 @@ function MountRegistry.resolve(path)
         end
     end
 
-    return bestMatch;
+    -- get relative path
+    if bestMatch then
+        local relativePath = path:sub(longestLen + 1)
+
+        if relativePath == "" then
+            relativePath = "/"
+        end
+
+        return bestMatch, relativePath
+    end
 end
 
 ---Unregisters mount point.

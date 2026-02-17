@@ -270,11 +270,16 @@ Opens a file or device.
 - `"w"` - write
 - `"a"` - append
 - `"r+" - read/write`
-`opts`:
-- `lock`:
-	- `"exclusive"` - write lock
-	- `"shared"` - read lock
-- `nonblock: boolean` - fails immediately if locked/busy
+ 
+[//]: # (`opts`:)
+
+[//]: # (- `lock`:)
+
+[//]: # (	- `"exclusive"` - write lock)
+
+[//]: # (	- `"shared"` - read lock)
+
+[//]: # (- `nonblock: boolean` - fails immediately if locked/busy)
 
 **Returns:**
 `fd` - handle id of file descriptor
@@ -293,19 +298,20 @@ Closes the file descriptor. Releases any locks.
 `fd` - handle to close
 
 ---
-`66` | `fs.read(fd: number, fmt: number | string, offset?: number) -> data: string | nil`
+`66` | `fs.read(fd: number, number: number, offset?: number) -> data: string | nil`
 Reads data from the file.
 
  **Arguments:**
-`fd` - the file descriptor. 
-`fmt` - reading mode:
-	`number`: Read exact amount of bytes (or until EOF).
-	 `"*l"`: Read until the end of line.
-	 `"*a"`: Read all of file contents starting from cursor.
-`offset` - if provided, performs a pread, incompatible with `*l`
+`fd` - the file descriptor.
+[//]: # (`fmt` - reading mode:)
 
->>> ![NOTE]
-> fmt to be changed to number of bits, advanced reads ot be moved into userspace!
+[//]: # (	`number`: Read exact amount of bytes &#40;or until EOF&#41;.)
+
+[//]: # (	 `"*l"`: Read until the end of line.)
+
+[//]: # (	 `"*a"`: Read all of file contents starting from cursor.)
+`number` - number of bytes to read (or until EOF).
+`offset` - if provided, performs a pread.
 
 **Returns:**
 `data` - the string to read, `nil` if reached EOF.
@@ -338,9 +344,9 @@ Moves cursor.
 `fd` - the file descriptor.
 `offset` - number of bytes to move
 `whence` (default `"cur"`):
-- `"set"` - absolute position (from start).
-- `"cur"` - relative to current position.
-- `"end"` - relative to file end.
+- `"set" or 0` - absolute position (from start).
+- `"cur" or 1` - relative to current position.
+- `"end" or 2` - relative to file end.
 
 **Returns:**
 `new_pos` - new absolute position.
@@ -351,8 +357,10 @@ Retrieves metadata about a file or directory.
 
  **Arguments:**
 `path` - path to object.
-`opts`:
-- `follow: boolean` (default: `true`), if false, returns info about symlinks themselves (lstat)
+
+[//]: # (`opts`:)
+
+[//]: # (- `follow: boolean` &#40;default: `true`&#41;, if false, returns info about symlinks themselves &#40;lstat&#41;)
 
 **Returns:**
 `metadata`:
@@ -411,26 +419,42 @@ Array of filenames.
 2. Path not found.
 3. Permission denied.
 
----
-`71` | `fs.manage(cmd: string, path: string, arg?: string) -> void`
-Consolidated file management operations.
+[//]: # (---)
 
- **Arguments:**
-`cmd` - operation type:
-- `"MKDIR"` - create directory.
-- `"RM"` - delete file or directory.
-- `"MV"` - move/rename (`arg` is destination path).
-- `"CP"` - copy (`arg` is destination path).
-- `"SYMLINK"` - create a symbolic link at `path` pointing to `arg`.
-`path` - target path.
-`arg` - second argument, if required by `cmd`.
+[//]: # (`71` | `fs.manage&#40;cmd: string, path: string, arg?: string&#41; -> void`)
 
-**Errors:**
-1. Target already exists (for MKDIR/MV).
-2. Removing a non-empty directory.
-3. File not existing (RM, MV, CP)
-4. Permission denied
-5. Filesystem not supporting symlinks
+[//]: # (Consolidated file management operations.)
+
+[//]: # ()
+[//]: # ( **Arguments:**)
+
+[//]: # (`cmd` - operation type:)
+
+[//]: # (- `"MKDIR"` - create directory.)
+
+[//]: # (- `"RM"` - delete file or directory.)
+
+[//]: # (- `"MV"` - move/rename &#40;`arg` is destination path&#41;.)
+
+[//]: # (- `"CP"` - copy &#40;`arg` is destination path&#41;.)
+
+[//]: # (- `"SYMLINK"` - create a symbolic link at `path` pointing to `arg`.)
+
+[//]: # (`path` - target path.)
+
+[//]: # (`arg` - second argument, if required by `cmd`.)
+
+[//]: # (`**Errors:**)
+
+[//]: # (1. Target already exists &#40;for MKDIR/MV&#41;.)
+
+[//]: # (2. Removing a non-empty directory.)
+
+[//]: # (3. File not existing &#40;RM, MV, CP&#41;)
+
+[//]: # (4. Permission denied)
+
+[//]: # (5. Filesystem not supporting symlinks`)
 
 ---
 `72` | `fs.ioctl(fd: number, cmd: string, ...args) -> any`
@@ -507,6 +531,50 @@ Changes the metadata of a file or directory.
 1. Invalid path
 2. No permissions
 3. Invalid permissions
+
+---
+`78` | `fs.rename(path: string, destination: string) -> void`
+Moves (or renames) file.
+**Arguments:**
+`path` - path to file that is to be moved
+`destination` - destination of move
+
+**Errors:**
+1. Invalid path
+2. Invalid destination
+3. Invalid permissions
+
+---
+`79` | `fs.copy(path: string, destination: string) -> void`
+Copies file.
+**Arguments:**
+`path` - path to file that is to be copy
+`destination` - destination to copy to
+
+**Errors:**
+1. Invalid path
+2. Invalid destination
+3. Invalid permissions
+
+---
+`80` | `fs.remove(path: string) -> void`
+Removes file.
+**Arguments:**
+`path` - path to file that has to be removed
+
+**Errors:**
+1. Invalid path
+2. Invalid permissions
+
+---
+`81` | `fs.mkdir(path: string) -> void`
+Creates directory at path.
+**Arguments:**
+`path` - path to new directory
+
+**Errors:**
+1. Invalid path
+2. Invalid permissions
 
 ### System & Hardware
 ---
