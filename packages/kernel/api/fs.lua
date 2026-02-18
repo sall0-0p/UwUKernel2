@@ -67,7 +67,11 @@ function fs.list(tcb, path)
 end
 
 function fs.ioctl(tcb, fd, cmd, ...)
+    assert(type(fd) == "number", "EINVAL: Bad argument #1: File descriptor must be a number.");
+    assert(type(cmd) == "string", "EINVAL: Bad argument #2: Command must be a string.");
+    local pcb = ProcessRegistry.get(tcb.pid);
 
+    return VFSManager.ioctl(pcb, fd, cmd, ...);
 end
 
 function fs.mount(tcb, path, port)
