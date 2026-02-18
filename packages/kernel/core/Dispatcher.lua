@@ -39,7 +39,7 @@ function Dispatcher.dispatch(tcb, syscallId, syscallArguments)
         return { status = "ERROR", error = results[1] };
     end
 
-    if (#results == 0) then
+    if (tcb.state == "DEAD" or tcb.state == "ZOMBIE") then
         return { status = "DROP" };
     end
 
