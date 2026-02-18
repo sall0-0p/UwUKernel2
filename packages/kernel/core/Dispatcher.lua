@@ -7,7 +7,7 @@ local modules = {
     require("api.thread"),
     require("api.ipc"),
      require("api.fs"),
-    -- require("api.io"),
+     require("api.io"),
      require("api.sys"),
      require("api.dev"),
     -- require("api.sync"),
