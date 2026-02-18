@@ -36,13 +36,11 @@ function DeviceManager.open(pcb, name)
     if not device then
         error("ENOENT: Device not found: " .. tostring(name));
     end
-    
-    device.onAcquire = function(self, pid)
-        if self.claimedBy and self.claimedBy ~= pid then
-            error("EBUSY: Device is claimed by PID " .. self.claimedBy);
-        end
-        self.claimedBy = pid;
+
+    if device.claimedBy and device.claimedBy ~= pcb.pid then
+        error("EBUSY: Device is claimed by PID " .. device.claimedBy);
     end
+    device.claimedBy = pcb.pid;
 
     device.onDestroy = function(self)
         self.claimedBy = nil;

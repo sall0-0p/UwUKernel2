@@ -68,7 +68,6 @@ function EnvironmentFactory.getEnvironment(pid, args)
             traceback = debug.traceback,
             -- TODO: Maybe needs some wrapping for getinfo, as it will reveal underlying real file system..
             getinfo = debug.getinfo,
-            serialize = debug.serialize,
         },
 
         -- lua functions

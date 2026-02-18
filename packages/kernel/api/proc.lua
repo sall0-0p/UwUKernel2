@@ -1,5 +1,6 @@
 local ProcessManager = require("proc.ProcessManager");
 local ProcessRegistry = require("proc.registry.ProcessRegistry");
+local SignalManager = require("proc.SignalManager");
 local Utils = require("misc.Utils");
 
 local proc = {};
@@ -42,7 +43,12 @@ end
 ---@param pid number Process to send signal to.
 ---@param signal string Desired signal to be sent.
 function proc.kill(tcb, pid, signal)
+    assert(type(pid) == "number", "EINVAL: Bad argument #1: Pid must be a valid number.");
+    assert(type(signal) == "number", "EINVAL: Bad argument #2: Signal ID must be a number.");
+    local pcb = ProcessRegistry.get(tcb.pid);
 
+    -- TODO: Add payload?
+    return SignalManager.send(pcb, pid, signal, {});
 end
 
 ---Returns metadata of process.

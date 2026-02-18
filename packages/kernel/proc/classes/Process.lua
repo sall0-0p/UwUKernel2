@@ -17,6 +17,7 @@
 ---@field limits table Resource limits
 ---@field cpuTime number Accumulated CPU usage
 ---@field startTime number Timestamp of creation
+---@field signalPorts table Maps ids of signals to global ids of ports listening to them
 ---@field threadsWaitingForChildren number[] Threads waiting for children. Internal.
 local Process = {};
 Process.__index = Process;
@@ -43,6 +44,8 @@ function Process.new(pid, ppid, name, uid, gid)
         handles = {},
         cwd = "/",
         env = {},
+
+        signalPorts = {},
 
         cpuTime = 0,
         startTime = os.epoch("utc"),

@@ -36,7 +36,7 @@ function ipc.receive(tcb, port, opts);
     local message, status = IPCManager.receive(process, port);
 
     if (status == "OK") then
-        return { status = "OK", val = message };
+        return message;
     else
         return { status = "BLOCK", reason = "Waiting for IPC", target = port };
     end

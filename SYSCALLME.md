@@ -739,6 +739,29 @@ Names of methods returned.
 **Errors:**
 1. No permissions.
 
+---
+`111` | `sys.signal(signal: number, port: number) -> void`
+Asks system to send signals with this id to respective port, overrides default behaviour.
+Default signals and their behaviour:
+
+| Id  | Name    | Description                                    | Default action    | Args        |
+| --- | ------- | ---------------------------------------------- | ----------------- |-------------|
+| 1   | SIGHUP  | Sent when device (peripheral) is disconnected. | Terminate         | device_name |
+| 2   | SIGINT  | Sent to cancel current action                  | Terminate         |             |
+| 17  | SIGCHLD | Sent when child dies                           | None              | pid, status |
+| 13  | SIGPIPE | Sent when pipe or port disconnects             | Terminate         | fd          |
+| 19  | SIGSTOP | Stops process temporary (to be added later)    | Unstoppable force |             |
+| 18  | SIGCONT | Continues process (to be added later)          | Unstoppable force |             |
+| 9   | SIGKILL | Kills process immediately and ruthlessly       | Unstoppable force |             |
+| 15  | SIGTERM | Tells process to kill itself                   | Terminate         |             |
+
+**Attributes:**
+`signal` - id of a signal we want to send
+`port` - fd pointing to a port, signals will arrive here, if `nil` unregisters handler.
+
+**Errors:**
+1. No permissions.
+
 ### Synchronisation
 ---
 `128` | `sync.create(type: string, init?: number) -> handle: number`

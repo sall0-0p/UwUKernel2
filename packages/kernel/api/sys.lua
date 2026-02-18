@@ -1,6 +1,7 @@
 local TimerManager = require("misc.TimerManager");
 local EventManager = require("misc.EventManager");
 local ProcessRegistry = require("proc.registry.ProcessRegistry");
+local ObjectManager = require("core.ObjectManager")
 
 local sys = {};
 
@@ -121,6 +122,32 @@ function sys.reboot(tcb)
     os.reboot();
 end
 
+function sys.signal(tcb, signal, fd)
+    assert(type(signal) == "number", "EINVAL: Bad argument #1: Signal id must be a number.");
+    assert(type(fd) == "number", "EINVAL: Bad argument #2: File descriptor must be a number.");
+    local pcb = ProcessRegistry.get(tcb.pid);
+
+    if fd == nil then
+        pcb.signalPorts[signal] = nil;
+        return { status = "OK" };
+    end
+
+    local globalId = pcb.handles[fd];
+    if not globalId then
+        error("EBADF: Invalid file descriptor.");
+    end
+
+    local rightObj = ObjectManager.get(globalId);
+    if not rightObj or rightObj.type ~= "RECEIVE_RIGHT" then
+        error("EPERM: Descriptor is not a receive right.");
+    end
+
+    local portId = rightObj.impl.portId;
+    pcb.signalPorts[signal] = portId;
+
+    return { status = "OK" };
+end
+
 return {
     [96] = sys.epoch,
     [97] = sys.timer,
@@ -132,4 +159,5 @@ return {
     [103] = sys.unbind_event,
     [104] = sys.shutdown,
     [105] = sys.reboot,
+    [111] = sys.signal,
 }
