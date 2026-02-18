@@ -35,6 +35,17 @@ function DeviceManager.open(pcb, name)
     if not device then
         error("ENOENT: Device not found: " .. tostring(name));
     end
+    
+    device.onAcquire = function(self, pid)
+        if self.claimedBy and self.claimedBy ~= pid then
+            error("EBUSY: Device is claimed by PID " .. self.claimedBy);
+        end
+        self.claimedBy = pid;
+    end
+
+    device.onDestroy = function(self)
+        self.claimedBy = nil;
+    end
 
     local kObj = KernelObject.new("DEVICE", device);
     return ObjectManager.link(pcb, ObjectManager.register(kObj));
