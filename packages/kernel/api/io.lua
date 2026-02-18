@@ -5,11 +5,11 @@ local io = {};
 
 function io.dup(tcb, oldFd, newFd)
     assert(type(oldFd) == "number", "EINVAL: Old FD must be a number");
-    assert(type(newFd) == "number", "EINVAL: New FD must be a number");
+    assert(type(newFd) == "number" or newFd == nil, "EINVAL: New FD must be a number or nil");
 
     local pcb = ProcessRegistry.get(tcb.pid);
-    ObjectManager.dup(pcb, oldFd, newFd);
-    return { status = "OK", val = {} };
+    local fd = ObjectManager.dup(pcb, oldFd, newFd);
+    return fd;
 end
 
 return {

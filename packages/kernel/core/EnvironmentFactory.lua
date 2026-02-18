@@ -36,9 +36,6 @@ function EnvironmentFactory.getEnvironment(pid, args)
                 result = result .. " " .. nextArg;
             end
 
-            -- TODO: Remove this later, when there is actual TTY.
-            print(...);
-
             return env.call(67, 2, result);
         end,
 
@@ -47,9 +44,10 @@ function EnvironmentFactory.getEnvironment(pid, args)
         end,
 
         sleep = function(duration)
-            local port = env.call(32);
-            env.call(97, port, duration);
-            env.call(34);
+            local port = env.call(32); -- create port
+            env.call(97, port, duration); -- create timer for certain duration
+            env.call(34, port); -- wait for timer
+            env.call(36, port); -- close the port
         end,
 
         -- lua libraries
