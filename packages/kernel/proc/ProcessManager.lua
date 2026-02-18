@@ -5,6 +5,7 @@ local ThreadManager = require("proc.ThreadManager");
 local Scheduler = require("core.Scheduler");
 local Utils = require("misc.Utils");
 local IPCManager = require("ipc.IPCManager");
+local EnvironmentFactory = require("core.EnvironmentFactory")
 
 --- @class ProcessManager
 local ProcessManager = {};
@@ -103,29 +104,8 @@ function ProcessManager.spawn(ppid, path, args, attr)
     ProcessRegistry.register(newPid, child);
     if (parent) then parent.children[#parent.children + 1] = newPid end;
 
-    -- get environment,
-    -- TODO: replace with separate factory
-    local processEnv = {
-        arg = args or {};
-        call = function(id, ...)
-            local result, returns = coroutine.yield("SYSCALL", id, table.pack(...));
-            if (result) then
-                return table.unpack(returns);
-            else
-                error(returns, 2);
-            end
-        end,
-        print = function(...)
-            local returns = print(...);
-            coroutine.yield();
-            return returns;
-        end,
-        write = function(...)
-            local returns = term.write(...);
-            coroutine.yield();
-            return returns;
-        end
-    }
+    -- get environment.
+    local processEnv = EnvironmentFactory.getEnvironment(newPid, args);
 
     -- temporary and shitty
     -- TODO: REMOVE THIS.
