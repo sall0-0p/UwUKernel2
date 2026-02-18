@@ -13,6 +13,6 @@ function io.dup(tcb, oldFd, newFd)
 end
 
 return {
-    [73] = io.dup,
-    [74] = io.pipe,
+    [73] = io.pipe,
+    [74] = io.dup,
 };
