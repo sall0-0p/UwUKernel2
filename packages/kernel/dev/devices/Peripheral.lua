@@ -21,7 +21,7 @@ function PeripheralWrapper.new(name, type)
     return new;
 end
 
-function PeripheralWrapper:call(method, ...)
+function PeripheralWrapper:ioctl(pcb, method, ...)
     return peripheral.call(self.name, method, ...);
 end
 

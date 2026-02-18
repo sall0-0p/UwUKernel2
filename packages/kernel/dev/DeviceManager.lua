@@ -1,5 +1,6 @@
 local DeviceRegistry = require("dev.DeviceRegistry");
 local ObjectManager = require("core.ObjectManager");
+local KernelObject = require("core.KernelObject");
 
 local PeripheralWrapper = require("dev.devices.Peripheral");
 local TerminalWrapper = require('dev.devices.Terminal');
@@ -49,26 +50,6 @@ function DeviceManager.open(pcb, name)
 
     local kObj = KernelObject.new("DEVICE", device);
     return ObjectManager.link(pcb, ObjectManager.register(kObj));
-end
-
-function DeviceManager.call(pcb, fd, method, ...)
-    local globalId = pcb.handles[fd];
-    if not globalId then
-        error("EBADF: Invalid file descriptor.");
-    end
-
-    local kObj = ObjectManager.get(globalId);
-    if not kObj or kObj.type ~= "DEVICE" then
-        error("EBADF: Handle is not a device.");
-    end
-
-    local device = kObj.impl;
-
-    if not device.methods[method] then
-        error("ENOSYS: Method " .. tostring(method) .. " not found on device.");
-    end
-
-    return device:call(method, ...);
 end
 
 function DeviceManager.list()

@@ -23,8 +23,16 @@ function TerminalWrapper.new()
     return new;
 end
 
-function TerminalWrapper:call(method, ...)
-    return term[method](...);
+function TerminalWrapper:write(pcb, data)
+    term.write(data);
+end
+
+function TerminalWrapper:ioctl(pcb, method, ...)
+    if (term[method]) then
+        return term[method](...);
+    else
+        error("EINVAL: Invalid ioctl method! " .. method);
+    end
 end
 
 return TerminalWrapper;

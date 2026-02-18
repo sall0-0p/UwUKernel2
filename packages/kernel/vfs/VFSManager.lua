@@ -51,9 +51,6 @@ function VFSManager.close(pcb, fd)
     end
 
     local kobj = ObjectManager.get(globalId);
-    if (kobj.type ~= "FILE") then
-        error("EBADF: File descriptor must point to a file.");
-    end
 
     -- if there are other files using this shit, do not actually close!
     if (kobj.refs > 1) then
@@ -62,16 +59,12 @@ function VFSManager.close(pcb, fd)
     end
 
     --- @type FileDescriptor
-    local file = kobj.impl;
+    local file = kobj.impl; -- psst, this is not file anymore lol
+    if (file.close) then
+        return file:close(pcb);
+    end
 
-    return Promise.send(file.driverPort, Protocol.Methods.CLOSE, {
-        fileId = file.fileId,
-    }, function(result)
-        file.closed = true;
-        ObjectManager.close(pcb, fd);
-
-        return { true };
-    end)
+    return { status = "OK", val = {} };
 end
 
 ---Reads file from file descriptor.
@@ -86,21 +79,15 @@ function VFSManager.read(pcb, fd, number, offset)
     end
 
     local kobj = ObjectManager.get(globalId);
-    if (kobj.type ~= "FILE") then
-        error("EBADF: File descriptor must point to a file.");
+    --- @type FileDescriptor
+    local file = kobj.impl; -- psst, this is not file anymore lol
+    local absolute = (file.cursor or 0) + (offset or 0);
+
+    if (not file.read) then
+        error("EINVAL: Object does not support reading")
     end
 
-    --- @type FileDescriptor
-    local file = kobj.impl;
-
-    return Promise.send(file.driverPort, Protocol.Methods.READ, {
-        fileId = file.fileId,
-        user = {
-            uid = pcb.euid,
-            gid = pcb.egid,
-            groups = pcb.groups,
-        },
-    });
+    return file:read(pcb, number, absolute);
 end
 
 ---Writes to file using file descriptor.
@@ -115,24 +102,17 @@ function VFSManager.write(pcb, fd, data, offset)
     end
 
     local kobj = ObjectManager.get(globalId);
-    if (kobj.type ~= "FILE") then
-        error("EBADF: File descriptor must point to a file.");
-    end
 
     --- @type FileDescriptor
-    local file = kobj.impl;
-    local absolute = file.cursor + offset;
+    local file = kobj.impl; -- psst, this is not file anymore lol
 
-    return Promise.send(file.driverPort, Protocol.Methods.WRITE, {
-        offset = absolute,
-        data = data,
-        fileId = file.fileId,
-        user = {
-            uid = pcb.euid,
-            gid = pcb.egid,
-            groups = pcb.groups,
-        },
-    });
+    local absolute = (file.cursor or 0) + (offset or 0);
+
+    if (not file.write) then
+        error("EINVAL: Object does not support writing");
+    end
+
+    return file:write(pcb, data, absolute);
 end
 
 ---Sends I/O control request to the driver.
@@ -146,22 +126,15 @@ function VFSManager.ioctl(pcb, fd, cmd, ...)
     end
 
     local kobj = ObjectManager.get(globalId);
-    if (kobj.type ~= "FILE") then
-        error("EBADF: File descriptor must point to a file.");
-    end
 
     --- @type FileDescriptor
-    local file = kobj.impl;
+    local file = kobj.impl; -- psst, this is not file anymore lol
 
-    return Promise.send(file.driverPort, Protocol.Methods.IOCTL, {
-        cmd = cmd,
-        args = { ... },
-        user = {
-            uid = pcb.euid,
-            gid = pcb.egid,
-            groups = pcb.groups,
-        },
-    });
+    if (not file.ioctl) then
+        error("EINVAL: Object does not support ioctl");
+    end
+
+    return file:ioctl(pcb, cmd, ...);
 end
 
 ---Move cursor.

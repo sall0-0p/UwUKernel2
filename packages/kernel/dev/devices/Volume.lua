@@ -36,7 +36,7 @@ local function resolve(root, path)
 end
 
 --- Calls a method
-function VolumeWrapper:call(method, ...)
+function VolumeWrapper:ioctl(pcb, method, ...)
     local args = {...};
 
     if type(args[1]) == "string" then

@@ -12,19 +12,6 @@ function dev.open(tcb, name)
     return DeviceManager.open(pcb, name);
 end
 
----Synchronously calls a method on the device associated with a handle.
----@param tcb table Thread calling the syscall.
----@param handle number Device handle.
----@param method string Name of the method to call.
----@param ... any Arguments for the method.
-function dev.call(tcb, handle, method, ...)
-    assert(type(handle) == "number", "EINVAL: Bad argument #1: Handle must be a number.");
-    assert(type(method) == "string", "EINVAL: Bad argument #2: Method must be a string.");
-
-    local pcb = ProcessRegistry.get(tcb.pid);
-    return DeviceManager.call(pcb, handle, method, ...);
-end
-
 ---Returns a list of all attached peripheral names.
 ---@param tcb table Thread calling the syscall.
 function dev.list(tcb)

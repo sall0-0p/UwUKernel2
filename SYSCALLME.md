@@ -704,23 +704,6 @@ Returns:
 3. Process handle limit reached.
 
 ---
-`107` | `dev.call(handle: number, method: string, ...args) -> ...result`
-Synchronously calls a method on the native device associated with a handle.
-
-**Arguments:**
-`handle` - device handle provided via `dev.open`.
-`method` - name of the method to call.
-`...args` - variable arguments required by the method.
-
-Returns:
-Values returned by the peripheral method.
-
-**Errors:**
-1. Invalid handle.
-2. Method does not exist.
-3. Peripheral threw a Lua error during execution.
-
----
 `108` | `dev.list() -> string[]`
 Returns a list of all attached peripheral names. Root only.
 

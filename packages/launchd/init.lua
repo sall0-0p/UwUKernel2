@@ -1,5 +1,4 @@
-print("Hello from launchd!");
-
-for i, v in pairs(_G) do
-    print(i);
-end
+local terminal = call(106, "terminal");
+call(67, terminal, "Hello World from fs.write!");
+call(72, terminal, "write", "Hello World from fs.ioctl!");
+call(67, terminal, terminal);

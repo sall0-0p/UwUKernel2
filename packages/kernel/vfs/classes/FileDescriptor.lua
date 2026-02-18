@@ -1,3 +1,6 @@
+local Protocol = require("vfs.classes.Protocol");
+local Promise = require("vfs.classes.Promise");
+
 --- @class FileDescriptor
 --- @field driverPort number globalId of port
 --- @field fileId number id of a file inside driver to identify it
@@ -30,6 +33,41 @@ end
 ---Returns if file descriptor can be written to.
 function FileDescriptor:canWrite()
     return self.mode:find("w") ~= nil or self.mode:find("a") ~= nil;
+end
+
+function FileDescriptor:read(pcb, bytes, offset)
+    return Promise.send(self.driverPort, Protocol.Methods.READ, {
+        fileId = self.fileId,
+        offset = offset,
+        bytes = bytes,
+        user = { uid = pcb.euid, gid = pcb.egid },
+    });
+end
+
+function FileDescriptor:write(pcb, data, offset)
+    return Promise.send(self.driverPort, Protocol.Methods.WRITE, {
+        fileId = self.fileId,
+        offset = offset,
+        data = data,
+        user = { uid = pcb.euid, gid = pcb.egid },
+    });
+end
+
+function FileDescriptor:close(pcb)
+    return Promise.send(self.driverPort, Protocol.Methods.CLOSE, {
+        fileId = self.fileId
+    })
+end
+
+function FileDescriptor:ioctl(pcb, cmd, ...)
+    local args = { ... }
+
+    return Promise.send(self.driverPort, Protocol.Methods.IOCTL, {
+        fileId = self.fileId,
+        cmd = cmd,
+        args = args,
+        user = { uid = pcb.euid, gid = pcb.egid }
+    })
 end
 
 function FileDescriptor:onDestroy()
