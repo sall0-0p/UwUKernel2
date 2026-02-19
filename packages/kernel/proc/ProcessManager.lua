@@ -107,6 +107,13 @@ function ProcessManager.spawn(ppid, path, args, attr)
     -- get environment.
     local processEnv = EnvironmentFactory.getEnvironment(newPid, args);
 
+    -- inject preload
+    if (attr.preload) then
+        for i, v in pairs(attr.preload) do
+            processEnv.package.preload[i] = v;
+        end
+    end
+
     -- temporary and shitty
     -- TODO: REMOVE THIS.
     setmetatable(processEnv, { __index = _G, __tostring = "env" });

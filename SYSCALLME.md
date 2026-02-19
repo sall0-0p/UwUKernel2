@@ -24,7 +24,8 @@ Creates new process in one atomic method. Analogue of `posix_spawn`.
 - `groups: number[]` - Run with supplementary groups (requires root)
 - `name: string`- Debug name for process list
 - `limits: table` - limits for a child process, view `proc.limit` for more.
-- `blob: string` - source to run from, if defined - process will run this as main thread instead of reading source from path (requires root)
+- `blob: string` - source to run from, if defined - process will run this as main thread instead of reading source from path (requires root).
+- `preload: table` - injects into package.preload of a child.
 
 **Returns:**
 `pid`: PID of child process.
