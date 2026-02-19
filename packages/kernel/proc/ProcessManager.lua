@@ -110,6 +110,7 @@ function ProcessManager.spawn(ppid, path, args, attr)
     -- inject preload
     if (attr.preload) then
         for i, v in pairs(attr.preload) do
+            setfenv(v, processEnv);
             processEnv.package.preload[i] = v;
         end
     end
