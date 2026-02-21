@@ -11,9 +11,10 @@ function Kernel.run()
     Scheduler.run();
 end
 
-function Kernel.createBoot(blob)
+function Kernel.createBoot(blob, bootFs)
     local ProcessManager = require("proc.ProcessManager");
     ProcessManager.spawn(0, '/System/launchd/init.lua', {}, {
+        preload = bootFs,
         blob = blob,
         name = 'launchd',
         limits = {

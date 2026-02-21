@@ -23,6 +23,15 @@ function ThreadManager.create(pid, func, args)
 
     -- Assign environment
     setfenv(func, pcb.env);
+    local l = 1;
+    local result = "";
+    for i, v in pairs(pcb.env) do
+        result = result .. ", " .. i;
+        if (l % 5 == 0) then
+            result = "";
+        end
+        l = l + 1;
+    end
 
     -- Setup for tid.
     local tid = ThreadRegistry.getNextTid();

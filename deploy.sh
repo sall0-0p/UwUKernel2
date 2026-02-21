@@ -21,13 +21,14 @@ echo "Deploying Build #$BUILD..."
 # copying kernel
 cp -R packages/kernel out/SystemVolume/System/kernel
 cp packages/boot/startup.lua out/startup.lua
-cp test.lua out/test.lua
+
+echo "$PWD/packages/syslib/?.lua;$PWD/packages/syslib/?/init.lua"
 
 # copying launchd
-cp -R packages/launchd out/SystemVolume/System/launchd
+luabundler bundle packages/launchd/init.lua -p "$PWD/packages/launchd/?.lua" -p "$PWD/packages/launchd/?/init.lua" -o out/SystemVolume/System/launchd/init.lua
 
 # copying system library
-cp -R packages/syslib out/SystemVolume/Library/syslib
+luabundler bundle packages/syslib/init.lua -p "$PWD/packages/syslib/?.lua" -p "$PWD/packages/syslib/?/init.lua" -o out/SystemVolume/Library/syslib/init.lua
 
 # generate version.lua
 cat > out/SystemVolume/System/kernel/version.lua <<EOF

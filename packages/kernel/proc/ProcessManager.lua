@@ -109,15 +109,32 @@ function ProcessManager.spawn(ppid, path, args, attr)
 
     -- inject preload
     if (attr.preload) then
-        for i, v in pairs(attr.preload) do
-            setfenv(v, processEnv);
-            processEnv.package.preload[i] = v;
+        for name, data in pairs(attr.preload) do
+            if type(data) == "string" then
+                local chunk, err = loadstring(data, "@" .. name);
+                if not chunk then
+                    error("ENOEXEC: Failed to load preload " .. name .. ": " .. tostring(err));
+                end
+
+                setfenv(chunk, processEnv);
+                local exports = chunk();
+
+                if type(exports) == "table" then
+                    for k, v in pairs(exports) do
+                        processEnv.package.preload[k] = function() return v end;
+                    end
+                else
+                    processEnv.package.preload[name] = function() return exports end;
+                end
+            elseif type(data) == "function" then
+                setfenv(data, processEnv);
+                processEnv.package.preload[name] = data;
+            else
+                processEnv.package.preload[name] = function() return data end;
+            end
         end
     end
 
-    -- temporary and shitty
-    -- TODO: REMOVE THIS.
-    setmetatable(processEnv, { __index = _G, __tostring = "env" });
     child.env = processEnv;
 
     -- get source
