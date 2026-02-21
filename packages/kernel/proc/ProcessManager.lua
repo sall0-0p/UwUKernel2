@@ -202,6 +202,14 @@ function ProcessManager.exit(pid, exitCode)
 
     local parent = ProcessRegistry.get(pcb.ppid)
     if parent then
+        local SignalManager = require("proc.SignalManager");
+        local Signal = require("proc.classes.Signal");
+
+        SignalManager.send(ProcessRegistry.get(0), parent.pid, Signal.SIGCHLD, {
+            pid = pid,
+            code = exitCode,
+        });
+
         for i = #parent.threadsWaitingForChildren, 1, -1 do
             local waiter = table.remove(parent.threadsWaitingForChildren, i);
 

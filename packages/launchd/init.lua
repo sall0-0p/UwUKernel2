@@ -1,16 +1,11 @@
-local term = call(106, "terminal");
-call(74, term, 2);
+local io = _G.require("io");
+local dev = _G.require("dev");
 
---call(67, term, _G);
-local raw = _G.require("raw");
+local term = dev.open("terminal");
+io.dup(term, 2);
 
---local l = 1;
---local result = "";
---for i, v in pairs(raw) do
---    result = result .. ", " .. i;
---    l = l + 1;
---end
---
---call(67, term, result);
+local fs = _G.require("fs");
+fs.write(term, "Hello World from stdout!");
+print("Hello World from print!");
 
-raw.fs.write(term, "Hello World!");
+

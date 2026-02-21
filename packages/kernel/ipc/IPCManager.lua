@@ -78,7 +78,7 @@ function IPCManager.send(pcb, fd, payload, opts)
     local port = portObj.impl;
     local recipient = ProcessRegistry.get(port.ownerPid);
     if (not recipient) then
-        error("EINTERNAL: Port cannot be orphaned.");
+        error("EPIPE: Attempt to write to port with no recipient.");
     end
 
     if (#port.receivers == 0 and #port.queue >= port.capacity and not (port.isKernelCallback and port.callback)) then

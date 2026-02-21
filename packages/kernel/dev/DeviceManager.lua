@@ -1,6 +1,9 @@
 local DeviceRegistry = require("dev.DeviceRegistry");
+local ProcessRegistry = require("proc.registry.ProcessRegistry");
 local ObjectManager = require("core.ObjectManager");
 local KernelObject = require("core.KernelObject");
+local SignalManager = require("proc.SignalManager");
+local Signal = require("proc.classes.Signal");
 
 local PeripheralWrapper = require("dev.devices.Peripheral");
 local TerminalWrapper = require('dev.devices.Terminal');
@@ -79,8 +82,23 @@ function DeviceManager.onEvent(event, data)
         local wrapper = PeripheralWrapper.new(name, type);
         DeviceRegistry.register(name, wrapper);
     elseif event == "peripheral_detach" then
-        -- TODO: Send signal to process.
         local name = data[1];
+        local device = DeviceRegistry.get(name);
+        if (device.claimedBy) then
+            local kernel = ProcessRegistry.get(0);
+            local process = ProcessRegistry.get(device.claimedBy);
+
+            local handle = 0;
+            for fd, globalId in pairs(process.handles) do
+                if (ObjectManager.get(globalId).impl.name == name) then
+                    handle = fd;
+                end
+            end
+
+            SignalManager.send(kernel, device.claimedBy, Signal.SIGHUP, {
+                fd = handle;
+            });
+        end
         DeviceRegistry.remove(name);
     end
 end
