@@ -27,14 +27,14 @@ function EnvironmentFactory.getEnvironment(pid, args)
 
         -- default print
         print = function(...)
-            local args = { ... };
-            local result = table.remove(args, 1);
+            local count = select('#', ...);
+            local parts = {};
 
-            while (#args > 0) do
-                local nextArg = table.remove(args, 1);
-                result = result .. " " .. nextArg;
+            for i = 1, count do
+                table.insert(parts, tostring(select(i, ...)));
             end
 
+            local result = table.concat(parts, " ");
             return env.call(67, 2, result);
         end,
 

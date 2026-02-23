@@ -13,7 +13,7 @@ end
 
 function Kernel.createBoot(blob, bootFs)
     local ProcessManager = require("proc.ProcessManager");
-    ProcessManager.spawn(0, '/System/launchd/init.lua', { bootFs.args }, {
+    ProcessManager.spawn(0, '/System/launchd/init.lua', bootFs.args, {
         preload = bootFs.preload,
         blob = blob,
         name = 'launchd',

@@ -2,12 +2,15 @@ print("Hello from rootfsd!");
 
 local dev = _G.require("dev");
 local fs = _G.require("fs");
+local ipc = _G.require("ipc");
 
 local data = dev.open("volume:data");
 local system = dev.open("volume:system");
 
-local files = fs.ioctl(system, "list", "/");
+local port = ipc.create();
+fs.mount("/", port);
 
-for i, v in pairs(files) do
-    print(v);
+local message = ipc.receive(port);
+for i, v in pairs(message) do
+    print(i, v);
 end

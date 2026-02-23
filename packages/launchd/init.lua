@@ -1,6 +1,8 @@
 -- random stuff
 local io = _G.require("io");
 local dev = _G.require("dev");
+local sys = _G.require("sys");
+local ipc = _G.require("ipc");
 
 local term = dev.open("terminal");
 io.dup(term, 2);
@@ -10,8 +12,7 @@ fs.write(term, "Hello World from stdout!");
 print("Hello World from print!");
 
 -- create rootfsd
-local args = arg[1];
-local rootfsBlob = args.rootfsd;
+local rootfsBlob = arg.rootfsd;
 
 local proc = _G.require("proc");
 proc.spawn("/System/rootfsd/init.lua", {}, {
@@ -22,3 +23,9 @@ proc.spawn("/System/rootfsd/init.lua", {}, {
         [2] = 2,
     }
 });
+
+local port = ipc.create();
+sys.timer(port, 5);
+ipc.receive(port);
+
+fs.list("/");

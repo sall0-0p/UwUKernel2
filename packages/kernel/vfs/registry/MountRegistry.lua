@@ -45,6 +45,10 @@ function MountRegistry.resolve(path)
     end
 end
 
+function MountRegistry.get(path)
+    return mounts[path];
+end
+
 ---Unregisters mount point.
 ---@param path string path to unregister mount for.
 function MountRegistry.unregister(path)

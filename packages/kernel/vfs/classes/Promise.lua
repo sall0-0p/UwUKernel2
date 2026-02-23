@@ -47,13 +47,11 @@ function Promise.send(driverPortId, method, payload, transform)
         end
     end)
 
-    local message = {
-        type = method,
-        data = payload
-    }
+    local message = payload;
 
     local success, err = IPCManager.sendKernelMessage(driverPortId, message, {
-        reply_global_id = replyGlobalId
+        reply_global_id = replyGlobalId,
+        type = method,
     })
 
     if not success then
