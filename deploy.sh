@@ -1,10 +1,10 @@
 # clean
-rm -rf /Users/bucket/Library/Application\ Support/CraftOS-PC/computer/0/SystemVolume
+rm -rf /Users/bucket/Library/Application\ Support/CraftOS-PC/computer/0/System
 rm -rf /Users/bucket/Library/Application\ Support/CraftOS-PC/computer/0/startup.lua
 rm -rf out/
 
-mkdir -p out/SystemVolume/System
-mkdir -p out/SystemVolume/Library
+mkdir -p out/System/System
+mkdir -p out/System/Library
 
 # version tracking
 BUILD_FILE=".build"
@@ -19,19 +19,23 @@ echo "$BUILD" > "$BUILD_FILE"
 echo "Deploying Build #$BUILD..."
 
 # copying kernel
-cp -R packages/kernel out/SystemVolume/System/kernel
+cp -R packages/kernel out/System/System/kernel
 cp packages/boot/startup.lua out/startup.lua
 
 echo "$PWD/packages/syslib/?.lua;$PWD/packages/syslib/?/init.lua"
 
 # copying launchd
-luabundler bundle packages/launchd/init.lua -p "$PWD/packages/launchd/?.lua" -p "$PWD/packages/launchd/?/init.lua" -o out/SystemVolume/System/launchd/init.lua
+luabundler bundle packages/launchd/init.lua -p "$PWD/packages/launchd/?.lua" -p "$PWD/packages/launchd/?/init.lua" -o out/System/System/launchd/init.lua
 
 # copying system library
-luabundler bundle packages/syslib/init.lua -p "$PWD/packages/syslib/?.lua" -p "$PWD/packages/syslib/?/init.lua" -o out/SystemVolume/Library/syslib/init.lua
+luabundler bundle packages/syslib/init.lua -p "$PWD/packages/syslib/?.lua" -p "$PWD/packages/syslib/?/init.lua" -o out/System/Library/syslib/init.lua
+
+# copying system library
+luabundler bundle packages/rootfsd/init.lua -p "$PWD/packages/rootfsd/?.lua" -p "$PWD/packages/rootfsd/?/init.lua" -o out/System/System/rootfsd/init.lua
+
 
 # generate version.lua
-cat > out/SystemVolume/System/kernel/version.lua <<EOF
+cat > out/System/System/kernel/version.lua <<EOF
 return {
     major = "$VERSION_MAJOR",
     build = $BUILD,

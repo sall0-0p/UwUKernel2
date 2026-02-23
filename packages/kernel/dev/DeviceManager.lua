@@ -24,13 +24,13 @@ function DeviceManager.onStartup()
     local termDevice = TerminalWrapper.new();
     DeviceRegistry.register("terminal", termDevice);
 
-    if not fs.exists("/SystemVolume") then fs.makeDir("/SystemVolume") end
-    if not fs.exists("/DataVolume") then fs.makeDir("/Data") end
+    if not fs.exists("/System") then fs.makeDir("/System") end
+    if not fs.exists("/Data") then fs.makeDir("/Data") end
 
-    local sysVol = VolumeWrapper.new("system", "/SystemVolume");
+    local sysVol = VolumeWrapper.new("system", "/System");
     DeviceRegistry.register("volume:system", sysVol);
 
-    local dataVol = VolumeWrapper.new("data", "/DataVolume");
+    local dataVol = VolumeWrapper.new("data", "/Data");
     DeviceRegistry.register("volume:data", dataVol);
 end
 

@@ -1,5 +1,5 @@
 -- patch package.path
-package.path = package.path .. ";/SystemVolume/System/kernel/?.lua;/SystemVolume/System/kernel/?/init.lua";
+package.path = package.path .. ";/System/System/kernel/?.lua;/System/System/kernel/?/init.lua";
 
 local Kernel = {};
 
@@ -13,8 +13,8 @@ end
 
 function Kernel.createBoot(blob, bootFs)
     local ProcessManager = require("proc.ProcessManager");
-    ProcessManager.spawn(0, '/System/launchd/init.lua', {}, {
-        preload = bootFs,
+    ProcessManager.spawn(0, '/System/launchd/init.lua', { bootFs.args }, {
+        preload = bootFs.preload,
         blob = blob,
         name = 'launchd',
         limits = {
