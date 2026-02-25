@@ -10,7 +10,7 @@ local library = {
         list = 8,
     },
 
-    thread = {
+    task = {
         create = 9,
         join = 10,
         id = 11,

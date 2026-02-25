@@ -24,7 +24,7 @@ Creates new process in one atomic method. Analogue of `posix_spawn`.
 - `groups: number[]` - Run with supplementary groups (requires root)
 - `name: string`- Debug name for process list
 - `limits: table` - limits for a child process, view `proc.limit` for more.
-- `blob: string` - source to run from, if defined - process will run this as main thread instead of reading source from path (requires root).
+- `blob: string` - source to run from, if defined - process will run this as main task instead of reading source from path (requires root).
 - `preload: table` - injects into package.preload of a child, those modules will run as part of child environment.
 
 **Returns:**
@@ -63,12 +63,12 @@ OR
 1. If caller has no child processes
 
 ---
-`3` | `proc.kill(pid: number, signal: string) -> void`
+`3` | `proc.kill(pid: number, signal: number) -> void`
 Sends a control signal to the process.
 
- **Arguments:**
+**Arguments:**
  `pid` - process to send signal to
-`signal` - desired signal to be sent to the process
+ `signal` - desired signal to be sent to the process
 
 **Errors:**
 1. If caller has no permission
@@ -130,7 +130,7 @@ Voluntary gives up slice of CPU time.
 Gets list of all active process ids in system.
 
 ---
-`9` | `thread.create(entry: function, args?: any[]) -> tid: number`
+`9` | `task.create(entry: function, args?: any[]) -> tid: number`
 Creates a new thread (coroutine) within the current process.
 The new thread shares the same environment (`_G`) and file descriptors with parent, but is scheduled independently by kernel.
 
@@ -146,7 +146,7 @@ The new thread shares the same environment (`_G`) and file descriptors with pare
 2. `entry` is not a function.
 
 ---
-`10` | `thread.join(tid: number) -> success: boolean, ...results`
+`10` | `task.join(tid: number) -> success: boolean, ...results`
 Blocks the calling thread until the target thread `tid` terminates.
 
  **Arguments:**
@@ -161,14 +161,14 @@ Blocks the calling thread until the target thread `tid` terminates.
 2. Attempting to join yourself.
 
 ---
-`11` | `thread.id() -> tid: number`
+`11` | `task.id() -> tid: number`
 Returns the thread id of the calling thread.
 
 **Returns:**
 `tid` - the current thread id.
 
 ---
-`12` | `thread.list() -> tid: number[]` 
+`12` | `task.list() -> tid: number[]` 
 Returns a list of all active threads belonging to the current process.
 
 **Returns:** 
@@ -261,7 +261,7 @@ Returns debug information about a port.
 
 ### Filesystem and I/O
 ---
-`64` | `fs.open(path: string, mode: string, opts?: table) -> fd: number`
+`64` | `fs.open(path: string, mode: string) -> fd: number`
 Opens a file or device.
 
  **Arguments:**
@@ -271,16 +271,6 @@ Opens a file or device.
 - `"w"` - write
 - `"a"` - append
 - `"r+" - read/write`
- 
-[//]: # (`opts`:)
-
-[//]: # (- `lock`:)
-
-[//]: # (	- `"exclusive"` - write lock)
-
-[//]: # (	- `"shared"` - read lock)
-
-[//]: # (- `nonblock: boolean` - fails immediately if locked/busy)
 
 **Returns:**
 `fd` - handle id of file descriptor
@@ -299,7 +289,7 @@ Closes the file descriptor. Releases any locks.
 `fd` - handle to close
 
 ---
-`66` | `fs.read(fd: number, number: number, offset?: number) -> data: string | nil`
+`66` | `fs.read(fd: number, count: number, offset?: number) -> data: string | nil`
 Reads data from the file.
 
  **Arguments:**
@@ -311,7 +301,7 @@ Reads data from the file.
 [//]: # (	 `"*l"`: Read until the end of line.)
 
 [//]: # (	 `"*a"`: Read all of file contents starting from cursor.)
-`number` - number of bytes to read (or until EOF).
+`count` - number of bytes to read (or until EOF).
 `offset` - if provided, performs a pread.
 
 **Returns:**
@@ -353,7 +343,7 @@ Moves cursor.
 `new_pos` - new absolute position.
 
 ---
-`69` | `fs.stat(path: string, opts?: table) -> metadata: table`
+`69` | `fs.stat(path: string) -> metadata: table`
 Retrieves metadata about a file or directory.
 
  **Arguments:**
