@@ -21,14 +21,20 @@ echo "$BUILD" > "$BUILD_FILE"
 echo "Deploying Build #$BUILD..."
 
 # == compile teal stuff
+echo "Building teal packages"
 
 # # rootfsd
-# echo "Building rootfsd"
 # cd packages-tl/rootfsd
 # cyan build
 # cd "$ROOT_DIR"
 
 # == compile ts stuff
+echo "Building typescript packages"
+
+# rootfsd
+cd packages-ts/rootfsd
+npx tstl
+cd "$ROOT_DIR"
 
 # == copying stuff
 
@@ -51,11 +57,8 @@ luabundler bundle packages/syslib/init.lua \
   -o out/System/Library/syslib/init.lua
 
 # copying rootfsd
-# luabundler bundle packages/rootfsd/init.lua -p "$ROOT_DIR/packages/rootfsd/?.lua" -p "$ROOT_DIR/packages/rootfsd/?/init.lua" -o out/System/System/rootfsd/init.lua
-# luabundler bundle packages-tl/rootfsd/out/init.lua \
-#   -p "$ROOT_DIR/packages-tl/rootfsd/out/?.lua" \
-#   -p "$ROOT_DIR/packages-tl/rootfsd/out/?/init.lua" \
-#   -o out/System/System/rootfsd/init.lua
+mkdir out/System/System/rootfsd
+cp packages-ts/rootfsd/init.lua out/System/System/rootfsd/init.lua
 
 # == generate version.lua
 cat > out/System/System/kernel/version.lua <<EOF
