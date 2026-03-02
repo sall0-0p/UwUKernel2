@@ -31,10 +31,22 @@ echo "Building teal packages"
 # == compile ts stuff
 echo "Building typescript packages"
 
+# launchd
+cd packages-ts/launchd
+npx tstl
+cd "$ROOT_DIR"
+
+
+# rootfsd
+cd packages-ts/ccfsd
+npx tstl
+cd "$ROOT_DIR"
+
 # rootfsd
 cd packages-ts/rootfsd
 npx tstl
 cd "$ROOT_DIR"
+
 
 # == copying stuff
 
@@ -42,13 +54,9 @@ cd "$ROOT_DIR"
 cp -R packages/kernel out/System/System/kernel
 cp packages/boot/startup.lua out/startup.lua
 
-echo "$ROOT_DIR/packages/syslib/?.lua;$ROOT_DIR/packages/syslib/?/init.lua"
-
 # copying launchd
-luabundler bundle packages/launchd/init.lua \
-  -p "$ROOT_DIR/packages/launchd/?.lua" \
-  -p "$ROOT_DIR/packages/launchd/?/init.lua" \
-  -o out/System/System/launchd/init.lua
+mkdir out/System/System/launchd
+cp packages-ts/launchd/init.lua out/System/System/launchd/init.lua
 
 # copying system library
 luabundler bundle packages/syslib/init.lua \
@@ -59,6 +67,10 @@ luabundler bundle packages/syslib/init.lua \
 # copying rootfsd
 mkdir out/System/System/rootfsd
 cp packages-ts/rootfsd/init.lua out/System/System/rootfsd/init.lua
+
+# copying ccfsd
+mkdir out/System/System/ccfsd
+cp packages-ts/ccfsd/init.lua out/System/System/ccfsd/init.lua
 
 # == generate version.lua
 cat > out/System/System/kernel/version.lua <<EOF

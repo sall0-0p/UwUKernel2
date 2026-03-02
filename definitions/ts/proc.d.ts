@@ -115,7 +115,7 @@ declare module "proc" {
      * @throws ECHILD: No child processes.
      * @throws ECHILD: PID <pid> is not a child of this process.
      */
-    export function wait(pid: ProcessID, opts?: Record<string, never>): WaitReturns;
+    export function wait(pid: ProcessID | -1, opts?: Record<string, never>): WaitReturns;
 
     /**
      * Sends a control signal to the target process.

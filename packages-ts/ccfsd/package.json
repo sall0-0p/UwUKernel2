@@ -1,0 +1,16 @@
+{
+  "name": "ccfsd",
+  "version": "0.0.1",
+  "description": "Abstraction for default CC filesystem as a device.",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@jackmacwindows/lua-types": "^2.13.2",
+    "@jackmacwindows/typescript-to-lua": "^1.32.0"
+  }
+}
