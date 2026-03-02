@@ -158,6 +158,8 @@ function EnvironmentFactory.getEnvironment(pid, args)
         bit32 = Utils.deepcopy(bit32),
         utf8 = Utils.deepcopy(utf8),
         vector = Utils.deepcopy(vector),
+        string = Utils.deepcopy(string),
+        math = Utils.deepcopy(math),
 
         -- debug library
         -- I decided to limit it, because half of it completely breaks the security and sandboxing.

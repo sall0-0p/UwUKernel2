@@ -20,6 +20,6 @@
   },
   "include": [
     "src/*.ts",
-    "../../definitions/ts/**/*.d.ts"
+    "../../definitions/ts/**/*.d.ts",
   ]
 }

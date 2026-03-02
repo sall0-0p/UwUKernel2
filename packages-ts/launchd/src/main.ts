@@ -1,8 +1,4 @@
-import * as dev from "dev";
-import * as io from "io";
-import * as fs from "fs";
-import * as proc from "proc";
-import * as ipc from "ipc";
+import {dev, fs, proc, ipc, io} from "libsystem.raw";
 
 const terminal = dev.open("terminal");
 const stdout = io.dup(terminal, 2);
