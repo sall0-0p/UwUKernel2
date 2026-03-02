@@ -58,7 +58,7 @@ declare module "fs" {
      * @throws EINVAL: Bad argument #3: Opts must be a table or nil.
      * @throws ENOTFOUND: No mount point was resolved for this path.
      */
-    export function open(path: string, mode: OpenMode, opts?: Record<string, any>): number;
+    export function open(path: string, mode: OpenMode, opts?: Record<string, any>): FileDescriptor;
 
     /**
      * Closes the file descriptor. Releases any locks.
@@ -67,7 +67,7 @@ declare module "fs" {
      * @throws EINVAL: Bad argument #1: Path must be a string.
      * @throws EBADF: Invalid file descriptor.
      */
-    export function close(fd: number): void;
+    export function close(fd: FileDescriptor): void;
 
     /**
      * Reads data from the file.
@@ -81,7 +81,7 @@ declare module "fs" {
      * @throws EBADF: Invalid file descriptor.
      * @throws EINVAL: Object does not support reading
      */
-    export function read(fd: number, count: number, offset?: number): string | undefined;
+    export function read(fd: FileDescriptor, count: number, offset?: number): string | undefined;
 
     /**
      * Writes data to a file.
@@ -95,7 +95,7 @@ declare module "fs" {
      * @throws EBADF: Invalid file descriptor.
      * @throws EINVAL: Object does not support writing
      */
-    export function write(fd: number, data: any, offset?: number): number;
+    export function write(fd: FileDescriptor, data: any, offset?: number): number;
 
     /**
      * Moves the file cursor.
@@ -110,7 +110,7 @@ declare module "fs" {
      * @throws EBADF: Not a file.
      * @throws EINVAL: Invalid whence mode
      */
-    export function seek(fd: number, offset: number, whence?: SeekWhence): number;
+    export function seek(fd: FileDescriptor, offset: number, whence?: SeekWhence): number;
 
     /**
      * Retrieves metadata about a file or directory.
@@ -143,7 +143,7 @@ declare module "fs" {
      * @throws EBADF: Invalid file descriptor.
      * @throws EINVAL: Object does not support ioctl
      */
-    export function ioctl(fd: number, cmd: string, ...args: any[]): any;
+    export function ioctl(fd: FileDescriptor, cmd: string, ...args: any[]): any;
 
     /**
      * Mounts a filesystem driver to a specific path.
@@ -157,7 +157,7 @@ declare module "fs" {
      * @throws EBADF: Handle must be a port.
      * @throws EBUSY: Path is already a mount point.
      */
-    export function mount(path: string, port: number): void;
+    export function mount(path: string, port: PortID): void;
 
     /**
      * Unmounts a filesystem driver from a specific path.

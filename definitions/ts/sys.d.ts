@@ -6,6 +6,15 @@
 declare module "sys" {
     export type EpochLocale = "ingame" | "utc" | "local";
 
+    export const enum Signal {
+        SIGHUP = 1,
+        SIGINT = 2,
+        SIGKILL = 9,
+        SIGPIPE = 13,
+        SIGTERM = 15,
+        SIGCHLD = 17,
+    }
+
     export interface SystemInfo {
         /** OS version */
         version: string;
@@ -37,7 +46,7 @@ declare module "sys" {
 
     /**
      * Starts a system timer that fires after a duration in seconds.
-     * @param fd File descriptor pointing to the port that should receive the timer event.
+     * @param port File descriptor pointing to the port that should receive the timer event.
      * @param duration Duration in seconds until the timer fires.
      * @param cookie Optional payload attached to the timer event.
      * @returns A unique timer ID used for cancellation.
@@ -47,11 +56,11 @@ declare module "sys" {
      * @throws EBADF: Invalid file descriptor.
      * @throws EBADF: File descriptor is not a port right.
      */
-    export function timer(fd: number, duration: number, cookie?: any): number;
+    export function timer(port: PortID, duration: number, cookie?: any): TimerID;
 
     /**
      * Sets an alarm for a specific in-game time (0.0 to 24.0).
-     * @param fd File descriptor pointing to the port that should receive the alarm event.
+     * @param port File descriptor pointing to the port that should receive the alarm event.
      * @param time Time for the alarm to be set to.
      * @param cookie Optional payload attached to the alarm event.
      * @returns A unique alarm ID used for cancellation.
@@ -61,14 +70,14 @@ declare module "sys" {
      * @throws EBADF: Invalid file descriptor.
      * @throws EBADF: File descriptor is not a port right.
      */
-    export function alarm(fd: number, time: number, cookie?: any): number;
+    export function alarm(port: PortID, time: number, cookie?: any): TimerID;
 
     /**
      * Cancels a timer or alarm based on its ID.
      * @param id The ID of the timer or alarm to cancel.
      * @throws EINVAL: Bad argument #1: Id must be a number.
      */
-    export function cancel(id: number): void;
+    export function cancel(id: TimerID): void;
 
     /**
      * Writes a message to the kernel ring buffer.
@@ -93,7 +102,7 @@ declare module "sys" {
      * @throws EPERM: Descriptor is not a receive right.
      * @throws ESMTH: Someone is already bound to this event!
      */
-    export function bind_event(event: string, port: number): void;
+    export function bind_event(event: string, port: PortID): void;
 
     /**
      * Releases the exclusive subscription for an event type.
@@ -120,11 +129,11 @@ declare module "sys" {
     /**
      * Asks the system to send signals with this ID to the respective port, overriding default behavior.
      * @param signal The ID of the signal to override.
-     * @param fd The file descriptor pointing to a port. If omitted or undefined, unregisters the handler.
+     * @param port The file descriptor pointing to a port. If omitted or undefined, unregisters the handler.
      * @throws EINVAL: Bad argument #1: Signal id must be a number.
      * @throws EINVAL: Bad argument #2: File descriptor must be a number.
      * @throws EBADF: Invalid file descriptor.
      * @throws EPERM: Descriptor is not a receive right.
      */
-    export function signal(signal: number, fd?: number): void;
+    export function signal(signal: Signal, port?: PortID): void;
 }

@@ -14,7 +14,7 @@ declare module "io" {
      * @throws EBADF: Invalid file descriptor <oldFd>
      * @throws EINTERNAL: PCB handle points to non-existent object
      */
-    export function dup(oldFd: number, newFd?: number): number;
+    export function dup(oldFd: FileDescriptor, newFd?: number | FileDescriptor): FileDescriptor;
 
     /**
      * Creates a unidirectional byte stream.
@@ -22,5 +22,5 @@ declare module "io" {
      * (Note: Registered in syscall dispatcher but currently lacks backend implementation).
      * @returns A tuple where the first element is the read FD, and the second is the write FD.
      */
-    export function pipe(): [number, number];
+    export function pipe(): [FileDescriptor, FileDescriptor];
 }

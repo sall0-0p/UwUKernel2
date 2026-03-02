@@ -9,6 +9,15 @@ declare module "proc" {
      */
     export type ProcessLimitResource = "maxThreads" | "maxProcesses" | "maxFiles" | "maxPorts";
 
+    export const enum Signal {
+        SIGHUP = 1,
+        SIGINT = 2,
+        SIGKILL = 9,
+        SIGPIPE = 13,
+        SIGTERM = 15,
+        SIGCHLD = 17,
+    }
+
     export interface ProcessLimits {
         maxThreads: number;
         maxProcesses: number;
@@ -22,7 +31,7 @@ declare module "proc" {
         /** Working directory path */
         cwd?: string;
         /** Map of child file descriptors to parent file descriptors */
-        fds?: Record<number, number>;
+        fds?: Record<number, FileDescriptor>;
         /** Run as user ID (requires root) */
         uid?: number;
         /** Run as group ID (requires root) */
@@ -41,7 +50,7 @@ declare module "proc" {
 
     export interface WaitReturns {
         /** Process ID of the child that exited */
-        pid: number;
+        pid: ProcessID;
         /** Exit status code */
         code: number;
         /** CPU time used by the exited process */
@@ -49,15 +58,15 @@ declare module "proc" {
     }
 
     export interface ProcessInfo {
-        pid: number;
-        ppid: number;
+        pid: ProcessID;
+        ppid: ProcessID;
         uid: number;
         gid: number;
         state: "ALIVE" | "ZOMBIE" | "STOPPED" | "DEAD";
         groups: number[];
         name: string;
         cpuTime: number;
-        children: number[];
+        children: ProcessID[];
         limits: ProcessLimits;
     }
 
@@ -87,7 +96,7 @@ declare module "proc" {
      * @throws ENOEXEC: Syntax error: <error>`
      * @throws EBADF: Parent handle <fd> is invalid`
      */
-    export function spawn(path: string, args?: string[], attributes?: SpawnAttributes): number;
+    export function spawn(path: string, args?: string[], attributes?: SpawnAttributes): ProcessID;
 
     /**
      * Terminates the calling process. Closes all owned handles/ports.
@@ -106,7 +115,7 @@ declare module "proc" {
      * @throws ECHILD: No child processes.
      * @throws ECHILD: PID <pid> is not a child of this process.
      */
-    export function wait(pid: number, opts?: Record<string, never>): WaitReturns;
+    export function wait(pid: ProcessID, opts?: Record<string, never>): WaitReturns;
 
     /**
      * Sends a control signal to the target process.
@@ -118,7 +127,7 @@ declare module "proc" {
      * @throws EPERM: No permission.
      * @throws EINVAL: Invalid signal!`
      */
-    export function kill(pid: number, signal: number): void;
+    export function kill(pid: ProcessID, signal: Signal): void;
 
     /**
      * Returns metadata of a running process.
@@ -126,7 +135,7 @@ declare module "proc" {
      * @returns Metadata of the requested process.
      * @throws ESRCH: Process not found.
      */
-    export function info(pid?: number): ProcessInfo;
+    export function info(pid?: ProcessID): ProcessInfo;
 
     /**
      * Changes attributes of the running process.
@@ -151,5 +160,5 @@ declare module "proc" {
      * Retrieves a list of all active process IDs in the system.
      * @returns An array of active process PIDs.
      */
-    export function list(): number[];
+    export function list(): ProcessID[];
 }

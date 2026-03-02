@@ -11,7 +11,7 @@ declare module "task" {
      * @returns The unique thread ID (TID) of the new thread.
      * @throws ESRCH: Process not found
      */
-    export function create(entry: (...args: any[]) => any, args?: any[]): number;
+    export function create(entry: (...args: any[]) => any, args?: any[]): ThreadID;
 
     /**
      * Blocks the calling thread until the target thread terminates.
@@ -20,17 +20,17 @@ declare module "task" {
      * @throws ESRCH: Thread not found
      * @throws EDEADLK: Cannot join self
      */
-    export function join(tid: number): [boolean, ...any[]];
+    export function join(tid: ThreadID): [boolean, ...any[]];
 
     /**
      * Gets the thread ID of the currently running thread.
      * @returns The current thread ID.
      */
-    export function id(): number;
+    export function id(): ThreadID;
 
     /**
      * Gets a list of all thread IDs belonging to the current process.
      * @returns An array of active thread IDs.
      */
-    export function list(): number[];
+    export function list(): ThreadID[];
 }

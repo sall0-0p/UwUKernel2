@@ -12,7 +12,7 @@ declare module "dev" {
      * @throws ENOENT: Device not found: <name>
      * @throws EBUSY: Device is claimed by PID <pid>
      */
-    export function open(name: string): number;
+    export function open(name: string): FileDescriptor;
 
     /**
      * Returns a list of all attached peripheral names.
