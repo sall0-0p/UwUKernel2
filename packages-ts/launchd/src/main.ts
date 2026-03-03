@@ -1,7 +1,14 @@
-import {dev, fs, proc, ipc, io} from "libsystem.raw";
+import {dev, fs, proc, ipc, io, sys} from "libsystem.raw";
 
 const terminal = dev.open("terminal");
 const stdout = io.dup(terminal, 2);
+
+// printing system info
+fs.ioctl(terminal, "clear", 4);
+fs.ioctl(terminal, "setTextColor", 4);
+fs.ioctl(terminal, "setCursorPos", 1, 1);
+fs.write(terminal, `| ${sys.info().version}`);
+fs.ioctl(terminal, "setTextColor", 1);
 
 fs.write(stdout, `Hello from ${proc.info().name} (${proc.info().pid})!`);
 
