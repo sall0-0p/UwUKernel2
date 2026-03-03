@@ -10,7 +10,7 @@ mkdir -p out/System/Library
 
 # == version tracking
 BUILD_FILE=".build"
-VERSION_MAJOR=">-< UwUntu 0.1.0"
+VERSION_MAJOR="UwUntuCC Alpha 1"
 
 if [ ! -f "$BUILD_FILE" ]; then echo 0 > "$BUILD_FILE"; fi
 
