@@ -57,7 +57,7 @@ declare module "libsystem.raw" {
          * @throws EBADF: Invalid file descriptor.
          * @throws EBADF: File descriptor is not a port right.
          */
-        export function timer(port: PortID, duration: number, cookie?: any): TimerID;
+        export function timer(port: PortId, duration: number, cookie?: any): TimerId;
 
         /**
          * Sets an alarm for a specific in-game time (0.0 to 24.0).
@@ -71,14 +71,14 @@ declare module "libsystem.raw" {
          * @throws EBADF: Invalid file descriptor.
          * @throws EBADF: File descriptor is not a port right.
          */
-        export function alarm(port: PortID, time: number, cookie?: any): TimerID;
+        export function alarm(port: PortId, time: number, cookie?: any): TimerId;
 
         /**
          * Cancels a timer or alarm based on its ID.
          * @param id The ID of the timer or alarm to cancel.
          * @throws EINVAL: Bad argument #1: Id must be a number.
          */
-        export function cancel(id: TimerID): void;
+        export function cancel(id: TimerId): void;
 
         /**
          * Writes a message to the kernel ring buffer.
@@ -103,7 +103,7 @@ declare module "libsystem.raw" {
          * @throws EPERM: Descriptor is not a receive right.
          * @throws ESMTH: Someone is already bound to this event!
          */
-        export function bind_event(event: string, port: PortID): void;
+        export function bind_event(event: string, port: PortId): void;
 
         /**
          * Releases the exclusive subscription for an event type.
@@ -136,6 +136,6 @@ declare module "libsystem.raw" {
          * @throws EBADF: Invalid file descriptor.
          * @throws EPERM: Descriptor is not a receive right.
          */
-        export function signal(signal: Signal, port?: PortID): void;
+        export function signal(signal: Signal, port?: PortId): void;
     }
 }

@@ -51,7 +51,7 @@ declare module "libsystem.raw" {
 
         export interface WaitReturns {
             /** Process ID of the child that exited */
-            pid: ProcessID;
+            pid: ProcessId;
             /** Exit status code */
             code: number;
             /** CPU time used by the exited process */
@@ -59,15 +59,15 @@ declare module "libsystem.raw" {
         }
 
         export interface ProcessInfo {
-            pid: ProcessID;
-            ppid: ProcessID;
+            pid: ProcessId;
+            ppid: ProcessId;
             uid: number;
             gid: number;
             state: "ALIVE" | "ZOMBIE" | "STOPPED" | "DEAD";
             groups: number[];
             name: string;
             cpuTime: number;
-            children: ProcessID[];
+            children: ProcessId[];
             limits: ProcessLimits;
         }
 
@@ -97,7 +97,7 @@ declare module "libsystem.raw" {
          * @throws ENOEXEC: Syntax error: <error>`
          * @throws EBADF: Parent handle <fd> is invalid`
          */
-        export function spawn(path: string, args?: string[], attributes?: SpawnAttributes): ProcessID;
+        export function spawn(path: string, args?: string[], attributes?: SpawnAttributes): ProcessId;
 
         /**
          * Terminates the calling process. Closes all owned handles/ports.
@@ -116,7 +116,7 @@ declare module "libsystem.raw" {
          * @throws ECHILD: No child processes.
          * @throws ECHILD: PID <pid> is not a child of this process.
          */
-        export function wait(pid: ProcessID | -1, opts?: Record<string, never>): WaitReturns;
+        export function wait(pid: ProcessId | -1, opts?: Record<string, never>): WaitReturns;
 
         /**
          * Sends a control signal to the target process.
@@ -128,7 +128,7 @@ declare module "libsystem.raw" {
          * @throws EPERM: No permission.
          * @throws EINVAL: Invalid signal!`
          */
-        export function kill(pid: ProcessID, signal: Signal): void;
+        export function kill(pid: ProcessId, signal: Signal): void;
 
         /**
          * Returns metadata of a running process.
@@ -136,7 +136,7 @@ declare module "libsystem.raw" {
          * @returns Metadata of the requested process.
          * @throws ESRCH: Process not found.
          */
-        export function info(pid?: ProcessID): ProcessInfo;
+        export function info(pid?: ProcessId): ProcessInfo;
 
         /**
          * Changes attributes of the running process.
@@ -161,6 +161,6 @@ declare module "libsystem.raw" {
          * Retrieves a list of all active process IDs in the system.
          * @returns An array of active process PIDs.
          */
-        export function list(): ProcessID[];
+        export function list(): ProcessId[];
     }
 }
