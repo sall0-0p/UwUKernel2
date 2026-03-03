@@ -20,14 +20,6 @@ echo "$BUILD" > "$BUILD_FILE"
 
 echo "Deploying Build #$BUILD..."
 
-# == compile teal stuff
-echo "Building teal packages"
-
-# # rootfsd
-# cd packages-tl/rootfsd
-# cyan build
-# cd "$ROOT_DIR"
-
 # == compile ts stuff
 echo "Building typescript packages"
 
