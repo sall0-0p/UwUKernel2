@@ -70,7 +70,6 @@ EOF
 # == deploy
 cp -R out/* /Users/bucket/Library/Application\ Support/CraftOS-PC/computer/0/
 echo "Deploy complete!"
-rm -rf out/
 
 # == craftos-pc via CLI
 if [[ "$1" == "--cli" ]]; then

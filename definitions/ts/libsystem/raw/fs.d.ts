@@ -158,7 +158,7 @@ declare module "libsystem.raw" {
          * @throws EBADF: Handle must be a port.
          * @throws EBUSY: Path is already a mount point.
          */
-        export function mount(path: string, port: PortID): void;
+        export function mount(path: string, port: PortId): void;
 
         /**
          * Unmounts a filesystem driver from a specific path.

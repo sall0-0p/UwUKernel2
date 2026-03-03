@@ -58,7 +58,15 @@ proc.spawn("/System/rootfsd/init.lua", [ "--volumes", "/dev/vol0", "/dev/vol1", 
 // Wait for rootfsd to start
 ipc.receive(mailbox);
 
+try {
+    const items = fs.list("/dev/vol0");
+    items.forEach((item) => print(item));
+} catch (e) {
+
+}
+
 while (proc.info().children.length > 0) {
+    print("Reaping!");
     const result = proc.wait(-1);
     print(`Process ${result.pid} finished with code ${result.code}! It ran for ${result.usage}`);
 }

@@ -78,7 +78,7 @@ function FileDescriptor:onDestroy()
 
     IPCManager.sendKernelMessage(self.driverPort, {
         type = VFSProtocol.Methods.CLOSE;
-        data = { field = self.fileId };
+        data = { fileId = self.fileId };
     });
 end
 

@@ -107,9 +107,33 @@ function Scheduler.run()
                 -- handle traps
                 if (not ok) then
                     -- crash
-                    print("Thread " .. tid .. " crashed!");
-                    print("Message:", trap);
-                    ThreadManager.terminate(tid, trap);
+                    -- TODO: Remove this, write to stderr or smth
+                    local rawTrace = debug.traceback(tcb.co);
+                    local lines = {};
+
+                    for line in rawTrace:gmatch("[^\r\n]+") do
+                        if not line:find("EnvironmentFactory.lua")
+                                and not line:find("ThreadManager.lua")
+                                and not line:find("stack traceback:")
+                                and not line:find("[C]", 1, true)
+                                and not line:find("tail calls", 1, true) then
+
+                            local cleanedLine = line:gsub("^%s+", ""):gsub("%.%.%.", "");
+                            table.insert(lines, cleanedLine);
+                        end
+                    end
+
+                    local cleanTrace = table.concat(lines, "\n");
+
+                    term.setTextColor(16384); -- red
+                    print("[" .. tid .. "] " .. tostring(trap):gsub("^.-:%d+: ", ""));
+                    if #lines > 0 then
+                        print(cleanTrace);
+                    end
+                    term.setTextColor(1);
+
+                    local ProcessManager = require("proc.ProcessManager");
+                    ProcessManager.exit(tcb.pid, 1);
                 elseif (coroutine.status(tcb.co) == "dead") then
                     -- adequate exit
                     local results = { trap, returns[1] }
@@ -141,10 +165,11 @@ function Scheduler.run()
                         tcb.waitingReason = instr.reason;
                         tcb.waitingFor = instr.target;
                     elseif (instr.status == "ERROR") then
-                        tcb.state = "READY"
-                        tcb.resumeArgs = { false, instr.error }
-                        print("Error in " .. tid .. "!!!");
-                        print("Message: " .. instr.error);
+                        tcb.state = "READY";
+                        tcb.resumeArgs = { false, instr.error };
+
+                        -- very important
+                        table.insert(readyThreads, tid);
                     elseif (instr.status == "DROP") then
                         -- do nothing
                     else

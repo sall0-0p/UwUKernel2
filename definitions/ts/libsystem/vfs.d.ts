@@ -1,5 +1,6 @@
 import {fs} from "libsystem.raw";
 
+/** @noResolution */
 declare module "libsystem.vfs" {
     namespace vfs {
         export interface UserContext {
@@ -29,7 +30,7 @@ declare module "libsystem.vfs" {
 
             start(): void
             stop(): void
-            getPort(): PortId
+            getPortId(): PortId
         }
     }
 
