@@ -18,19 +18,36 @@ echo "Deploying Build #$BUILD..."
 echo "Building typescript packages"
 
 # launchd
-cd packages-ts/launchd
-npx tstl
+PACKAGE="launchd"
+cd packages-ts/$PACKAGE
+if [ -n "$(find src -name "*.ts" -newer init.lua 2>/dev/null)" ] || [ ! -f init.lua ]; then
+    echo "Changes detected in $PACKAGE, recompiling..."
+    npx tstl
+else
+    echo "No changes in $PACKAGE, skipping compilation."
+fi
 cd "$ROOT_DIR"
 
 
-# rootfsd
-cd packages-ts/ccfsd
-npx tstl
+# ccfsd
+PACKAGE="ccfsd"
+cd packages-ts/$PACKAGE
+if [ -n "$(find src -name "*.ts" -newer init.lua 2>/dev/null)" ] || [ ! -f init.lua ]; then
+    echo "Changes detected in $PACKAGE, recompiling..."
+    npx tstl
+else
+    echo "No changes in $PACKAGE, skipping compilation."
+fi
 cd "$ROOT_DIR"
 
-# rootfsd
-cd packages-ts/rootfsd
-npx tstl
+PACKAGE="rootfsd"
+cd packages-ts/$PACKAGE
+if [ -n "$(find src -name "*.ts" -newer init.lua 2>/dev/null)" ] || [ ! -f init.lua ]; then
+    echo "Changes detected in $PACKAGE, recompiling..."
+    npx tstl
+else
+    echo "No changes in $PACKAGE, skipping compilation."
+fi
 cd "$ROOT_DIR"
 
 
