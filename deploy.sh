@@ -9,14 +9,8 @@ mkdir -p out/System/System
 mkdir -p out/System/Library
 
 # == version tracking
-BUILD_FILE=".build"
 VERSION_MAJOR="UwUntuCC Alpha 1"
-
-if [ ! -f "$BUILD_FILE" ]; then echo 0 > "$BUILD_FILE"; fi
-
-BUILD=$(cat "$BUILD_FILE")
-BUILD=$((BUILD + 1))
-echo "$BUILD" > "$BUILD_FILE"
+BUILD=$(git rev-list --count HEAD 2>/dev/null || echo 0)
 
 echo "Deploying Build #$BUILD..."
 
@@ -76,6 +70,7 @@ EOF
 # == deploy
 cp -R out/* /Users/bucket/Library/Application\ Support/CraftOS-PC/computer/0/
 echo "Deploy complete!"
+rm -rf out/
 
 # == craftos-pc via CLI
 if [[ "$1" == "--cli" ]]; then
