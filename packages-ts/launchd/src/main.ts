@@ -1,4 +1,4 @@
-import {dev, fs, proc, ipc, io, sys} from "libsystem.raw";
+import {dev, fs, proc, ipc, io, sys, task} from "libsystem.raw";
 
 const terminal = dev.open("terminal");
 const stdout = io.dup(terminal, 2);
@@ -29,8 +29,9 @@ proc.spawn("/System/ccfsd/init.lua", [ "-v", "volume:system", "--path", "/dev/vo
         [2]: terminal,
     }
 })
-// Wait for ccfsd to start
+
 ipc.receive(mailbox);
+print("Received on mailbox for sysvold!");
 
 proc.spawn("/System/ccfsd/init.lua", [ "-v", "volume:data", "--path", "/dev/vol1" ], {
     name: "datavold",
@@ -42,8 +43,9 @@ proc.spawn("/System/ccfsd/init.lua", [ "-v", "volume:data", "--path", "/dev/vol1
         [2]: terminal,
     }
 })
-// Wait for ccfsd to start
+
 ipc.receive(mailbox);
+print("Received on mailbox for datavold!");
 
 proc.spawn("/System/rootfsd/init.lua", [ "--volumes", "/dev/vol0", "/dev/vol1", "--path", "/" ], {
     name: "rootfsd",
@@ -55,21 +57,23 @@ proc.spawn("/System/rootfsd/init.lua", [ "--volumes", "/dev/vol0", "/dev/vol1", 
         [2]: terminal,
     }
 })
-// Wait for rootfsd to start
+
 ipc.receive(mailbox);
+print("Received on mailbox for rootfsd!");
 
-try {
-    const items = fs.list("/dev/vol0");
-    items.forEach((item) => print(item));
-} catch (e) {
+print("Created reaper!");
+const reaper = task.create(() => {
+    while (proc.info().children.length > 0) {
+        const result = proc.wait(-1);
+        print(`Process ${result.pid} finished with code ${result.code}! It ran for ${result.usage}`);
+    }
+})
 
-}
+print("Eating protected cyanide!");
+const items = fs.list("/dev/vol0");
+items.forEach((item) => print(item));
 
-while (proc.info().children.length > 0) {
-    print("Reaping!");
-    const result = proc.wait(-1);
-    print(`Process ${result.pid} finished with code ${result.code}! It ran for ${result.usage}`);
-}
-
+print("Aah aah aah aah! Staying alive! Staying alive!");
+task.join(reaper);
 print("Launchd exiting!");
 proc.exit(0);
