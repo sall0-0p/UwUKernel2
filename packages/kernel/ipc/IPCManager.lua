@@ -132,11 +132,6 @@ function IPCManager.send(pcb, fd, payload, opts)
 
     -- callbacks
     if (port.isKernelCallback and port.callback) then
-        local success, err = pcall(port.callback, message);
-        if not success then
-            error("EINTERNAL: Kernel Callback Error: " .. tostring(err));
-        end
-
         -- Handle one-time senders (reply ports)
         local oneTimeUse = false;
         for i, v in pairs(port.temporarySenders) do
@@ -151,8 +146,9 @@ function IPCManager.send(pcb, fd, payload, opts)
             ObjectManager.close(pcb, fd);
         end
 
-        if (port.temporary) then
-            IPCManager.close(pcb, fd);
+        local success, err = pcall(port.callback, message);
+        if not success then
+            error("EINTERNAL: Kernel Callback Error: " .. tostring(err));
         end
 
         return false, port, recipient;
@@ -259,12 +255,17 @@ function IPCManager.sendKernelMessage(globalPortId, payload, opts)
     }
 
     if opts and opts.reply_global_id then
-        local replyObj = ObjectManager.get(opts.reply_global_id);
-        if replyObj and replyObj.type == "PORT" then
-            replyObj:retain();
-            message.globalReply = opts.reply_global_id;
+        local globalReplyPort = IPCManager.migrateRight(opts.reply_global_id);
+        local replyRightObj = ObjectManager.get(globalReplyPort);
 
-            table.insert(replyObj.impl.temporarySenders, recipient.pid);
+        if replyRightObj and replyRightObj.type == "SEND_RIGHT" then
+            replyRightObj:retain();
+            message.globalReply = globalReplyPort;
+
+            local replyPortObj = ObjectManager.get(replyRightObj.impl.portId);
+            if replyPortObj then
+                table.insert(replyPortObj.impl.temporarySenders, recipient.pid);
+            end
         end
     end
 

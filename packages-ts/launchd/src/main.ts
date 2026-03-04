@@ -71,7 +71,6 @@ const reaper = task.create(() => {
 
 print("Eating protected cyanide!");
 const items = fs.list("/dev/vol0");
-items.forEach((item) => print(item));
 
 print("Aah aah aah aah! Staying alive! Staying alive!");
 task.join(reaper);

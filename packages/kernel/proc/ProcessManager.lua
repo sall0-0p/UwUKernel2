@@ -173,7 +173,10 @@ function ProcessManager.exit(pid, exitCode)
     if (not pcb) then error("ESRSH: Process not found.") end;
 
     -- Terminate threads.
-    for _, tid in ipairs(pcb.threads) do
+    local threadsToKill = pcb.threads
+    pcb.threads = {}
+
+    for _, tid in ipairs(threadsToKill) do
         ThreadManager.terminate(tid);
     end
 

@@ -39,7 +39,7 @@ end
 function Scheduler.wake(tid, args)
     ---@type Thread
     local tcb = ThreadRegistry.get(tid);
-    if (tcb and tcb.state == "WAITING" or tcb.state == "BLOCKED") then
+    if tcb and (tcb.state == "WAITING" or tcb.state == "BLOCKED") then
         tcb.state = "READY";
         tcb.resumeArgs = args or {};
         tcb.waitingReason = nil;
@@ -157,7 +157,7 @@ function Scheduler.run()
                     systemTime = systemTime + (systemTimeEnd - systemTimeStart) / 1000;
 
                     if instr.status == "OK" then
-                        tcb.state = "READY";
+                       tcb.state = "READY";
                         tcb.resumeArgs = { true, instr.val };
                         table.insert(readyThreads, tid);
                     elseif (instr.status == "BLOCK") then

@@ -22,7 +22,7 @@ local raw = require("native");
 
 --- @class FileSystemServer
 --- @field port number port messages are being sent to.
---- @field handles VFSHandlers handlers for a server.
+--- @field handlers VFSHandlers handlers for a server.
 --- @field running boolean if server is running.
 local FileSystemServer = {};
 FileSystemServer.__index = FileSystemServer;
@@ -47,64 +47,64 @@ function FileSystemServer:start()
 
         local ok, err = pcall(function()
             if (msgType == "VFS_OPEN") then
-                if (not self.handles.onOpen) then error("ENOSYS") end
-                local fileId = self.handles.onOpen(payload.path, payload.mode, payload.user)
+                if (not self.handlers.onOpen) then error("ENOSYS") end
+                local fileId = self.handlers.onOpen(payload.path, payload.mode, payload.user)
                 raw.ipc.send(reply, { status = "OK", data = { fileId = fileId } })
 
             elseif (msgType == "VFS_CLOSE") then
-                if (not self.handles.onClose) then error("ENOSYS") end
-                self.handles.onClose(payload.fileId)
+                if (not self.handlers.onClose) then error("ENOSYS") end
+                self.handlers.onClose(payload.fileId)
                 raw.ipc.send(reply, { status = "OK" })
 
             elseif (msgType == "VFS_READ") then
-                if (not self.handles.onRead) then error("ENOSYS") end
-                local data = self.handles.onRead(payload.fileId, payload.bytes, payload.offset, payload.user)
+                if (not self.handlers.onRead) then error("ENOSYS") end
+                local data = self.handlers.onRead(payload.fileId, payload.bytes, payload.offset, payload.user)
                 raw.ipc.send(reply, { status = "OK", data = data })
 
             elseif (msgType == "VFS_WRITE") then
-                if (not self.handles.onWrite) then error("ENOSYS") end
-                local written = self.handles.onWrite(payload.fileId, payload.data, payload.offset, payload.user)
+                if (not self.handlers.onWrite) then error("ENOSYS") end
+                local written = self.handlers.onWrite(payload.fileId, payload.data, payload.offset, payload.user)
                 raw.ipc.send(reply, { status = "OK", data = written })
 
             elseif (msgType == "VFS_STAT") then
-                if (not self.handles.onStat) then error("ENOSYS") end
+                if (not self.handlers.onStat) then error("ENOSYS") end
                 -- Handle VFS_STAT being called with path OR fileId (for seek end)
-                local metadata = self.handles.onStat(payload.path or payload.fileId, payload.user)
+                local metadata = self.handlers.onStat(payload.path or payload.fileId, payload.user)
                 raw.ipc.send(reply, { status = "OK", data = metadata })
 
             elseif (msgType == "VFS_LIST") then
-                if (not self.handles.onList) then error("ENOSYS") end
-                local entries = self.handles.onList(payload.path, payload.user)
+                if (not self.handlers.onList) then error("ENOSYS") end
+                local entries = self.handlers.onList(payload.path, payload.user)
                 raw.ipc.send(reply, { status = "OK", data = entries })
 
             elseif (msgType == "VFS_MKDIR") then
-                if (not self.handles.onMkdir) then error("ENOSYS") end
-                self.handles.onMkdir(payload.path, payload.user)
+                if (not self.handlers.onMkdir) then error("ENOSYS") end
+                self.handlers.onMkdir(payload.path, payload.user)
                 raw.ipc.send(reply, { status = "OK" })
 
             elseif (msgType == "VFS_REMOVE") then
-                if (not self.handles.onRemove) then error("ENOSYS") end
-                self.handles.onRemove(payload.path, payload.user)
+                if (not self.handlers.onRemove) then error("ENOSYS") end
+                self.handlers.onRemove(payload.path, payload.user)
                 raw.ipc.send(reply, { status = "OK" })
 
             elseif (msgType == "VFS_RENAME") then
-                if (not self.handles.onRename) then error("ENOSYS") end
-                self.handles.onRename(payload.path, payload.destination, payload.user)
+                if (not self.handlers.onRename) then error("ENOSYS") end
+                self.handlers.onRename(payload.path, payload.destination, payload.user)
                 raw.ipc.send(reply, { status = "OK" })
 
             elseif (msgType == "VFS_COPY") then
-                if (not self.handles.onCopy) then error("ENOSYS") end
-                self.handles.onCopy(payload.path, payload.destination, payload.user)
+                if (not self.handlers.onCopy) then error("ENOSYS") end
+                self.handlers.onCopy(payload.path, payload.destination, payload.user)
                 raw.ipc.send(reply, { status = "OK" })
 
             elseif (msgType == "VFS_SETATTR") then
-                if (not self.handles.onSetattr) then error("ENOSYS") end
-                self.handles.onSetattr(payload.path, payload.attr, payload.user)
+                if (not self.handlers.onSetattr) then error("ENOSYS") end
+                self.handlers.onSetattr(payload.path, payload.attr, payload.user)
                 raw.ipc.send(reply, { status = "OK" })
 
             elseif (msgType == "VFS_IOCTL") then
-                if (not self.handles.onIoctl) then error("ENOSYS") end
-                local result = self.handles.onIoctl(payload.fileId, payload.cmd, payload.args, payload.user)
+                if (not self.handlers.onIoctl) then error("ENOSYS") end
+                local result = self.handlers.onIoctl(payload.fileId, payload.cmd, payload.args, payload.user)
                 raw.ipc.send(reply, { status = "OK", data = result })
 
             elseif (msgType == "VFS_SHUTDOWN") then
