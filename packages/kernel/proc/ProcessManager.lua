@@ -187,7 +187,9 @@ function ProcessManager.exit(pid, exitCode)
     pcb.handles = {};
 
     -- Move orphans to launchd.
-    if #pcb.children > 0 then
+    if (pcb.pid == 1) then
+        error("Launchd died, cannot continue working as OS, bye!", 3);
+    elseif #pcb.children > 0 then
         local launchd = ProcessRegistry.get(1);
         for _, childPid in ipairs(pcb.children) do
             local childPcb = ProcessRegistry.get(childPid);

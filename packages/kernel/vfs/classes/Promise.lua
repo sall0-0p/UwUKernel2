@@ -39,7 +39,7 @@ function Promise.send(driverPortId, method, payload, transform)
                     Scheduler.wake(tid, { false, "EINTERNAL: Transform failed: " .. tostring(transformed) });
                 end
             else
-                Scheduler.wake(tid, { true, result });
+                Scheduler.wake(tid, { true, { result } });
             end
         else
             local err = msg.data.data or "EINTERNAL: Driver returned error without message";

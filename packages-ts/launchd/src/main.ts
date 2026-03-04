@@ -69,8 +69,8 @@ const reaper = task.create(() => {
     }
 })
 
-print("Eating protected cyanide!");
-const items = fs.list("/dev/vol0");
+print("Eating forbidden fruit!");
+const items = fs.open("/dev/vol0", "w");
 
 print("Aah aah aah aah! Staying alive! Staying alive!");
 task.join(reaper);
