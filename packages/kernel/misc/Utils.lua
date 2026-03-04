@@ -26,4 +26,43 @@ function Utils.deepcopy(orig)
     return copy;
 end
 
+function Utils.serialize(node, name, depth, seen)
+    depth = depth or 0
+    seen = seen or {}
+    local prefix = string.rep("  ", depth)
+
+    local name_str = ""
+    if name then
+        if type(name) == "string" and name:match("^[%a_][%w_]*$") then
+            name_str = name .. " = "
+        else
+            name_str = "[" .. tostring(name) .. "] = "
+        end
+    end
+
+    local node_type = type(node)
+
+    if node_type == "table" then
+        if seen[node] then
+            return prefix .. name_str .. '"<cycle ' .. tostring(node) .. '>"'
+        end
+        seen[node] = true
+
+        local result = { prefix .. name_str .. "{" }
+        for k, v in pairs(node) do
+            table.insert(result, Utils.serialize(v, k, depth + 1, seen))
+        end
+        table.insert(result, prefix .. "}")
+
+        return table.concat(result, "\n")
+
+    elseif node_type == "string" then
+        return prefix .. name_str .. string.format("%q", node)
+    elseif node_type == "number" or node_type == "boolean" or node_type == "nil" then
+        return prefix .. name_str .. tostring(node)
+    else
+        return prefix .. name_str .. '"<' .. tostring(node) .. '>"'
+    end
+end
+
 return Utils;

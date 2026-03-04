@@ -35,6 +35,7 @@ function EnvironmentFactory.getEnvironment(pid, args)
             end
 
             local result = table.concat(parts, " ");
+            result = result .. "\n";
             return env.call(67, 2, result);
         end,
 
@@ -169,6 +170,7 @@ function EnvironmentFactory.getEnvironment(pid, args)
             traceback = debug.traceback,
             -- TODO: Maybe needs some wrapping for getinfo, as it will reveal underlying real file system..
             getinfo = debug.getinfo,
+            serialize = Utils.serialize,
         },
 
         -- lua functions

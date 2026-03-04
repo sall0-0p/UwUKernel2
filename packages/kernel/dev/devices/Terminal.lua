@@ -24,16 +24,29 @@ function TerminalWrapper.new()
 end
 
 function TerminalWrapper:write(pcb, data)
+    local str = tostring(data);
     local _, h = term.getSize();
-    term.write(tostring(data));
 
-    local _, newY = term.getCursorPos();
+    local pos = 1;
+    while pos <= #str do
+        local next_nl = string.find(str, "\n", pos, true);
+        local chunk = string.sub(str, pos, next_nl and (next_nl - 1) or #str);
+        term.write(chunk);
 
-    if newY < h then
-        term.setCursorPos(1, newY + 1);
-    else
-        term.scroll(1)
-        term.setCursorPos(1, h)
+        if next_nl then
+            local _, currentY = term.getCursorPos();
+
+            if currentY < h then
+                term.setCursorPos(1, currentY + 1)
+            else
+                term.scroll(1)
+                term.setCursorPos(1, h)
+            end
+
+            pos = next_nl + 1
+        else
+            break;
+        end
     end
 end
 
