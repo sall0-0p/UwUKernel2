@@ -22,7 +22,7 @@ declare module "libsystem.toml" {
          * @param str The TOML data to decode
          * @param opts Options (none available in this version)
          */
-        export function decode(str: string, opts?: DecodeOptions): string
+        export function decode(str: string, opts?: DecodeOptions): any
     }
 
     export = toml;
