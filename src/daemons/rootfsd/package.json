@@ -4,9 +4,8 @@
   "description": "Root filesystem for UwUntuCC, written in Typescript",
   "license": "ISC",
   "author": "",
-  "type": "commonjs",
-  "main": "index.js",
   "scripts": {
+    "build": "npx tstl",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

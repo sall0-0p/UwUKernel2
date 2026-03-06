@@ -11,6 +11,7 @@ fs.write(terminal, `| ${sys.info().version} \n`);
 fs.ioctl(terminal, "setTextColor", 1);
 
 fs.write(stdout, `Hello from ${proc.info().name} (${proc.info().pid})! \n`);
+print("Indeed updated!");
 
 // loading blobs
 const ccfsdBlob: string = arg['ccfsd'];

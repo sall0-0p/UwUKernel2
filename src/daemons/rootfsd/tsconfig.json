@@ -1,12 +1,12 @@
 {
   "$schema": "https://raw.githubusercontent.com/MCJack123/TypeScriptToLua/master/tsconfig-schema.json",
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../../tsconfig.base.json",
   "tstl": {
     "luaBundle": "init.lua",
     "luaBundleEntry": "src/main.ts"
   },
   "include": [
     "src/*.ts",
-    "../../definitions/ts/**/*.d.ts"
+    "../../libsystem/types/**/*.d.ts"
   ]
 }

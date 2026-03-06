@@ -10,10 +10,6 @@
         "src/libsystem/types/libsystem/*"
       ]
     },
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/libsystem/types"
-    ],
     "types": ["@jackmacwindows/lua-types/cc-5.2"]
   },
   "tstl": {
