@@ -20,7 +20,32 @@ echo "Deploying Build #$BUILD..."
 
 # bulding packages
 echo "Building all workspace packages..."
-npm run build:all
+for pkg_json in $(find src/daemons src/libsystem src/utils -name "package.json" 2>/dev/null); do
+  PKG_DIR=$(dirname "$pkg_json")
+
+  if grep -q '"build":' "$pkg_json"; then
+    NEEDS_BUILD=0
+    OUTPUT_FILE="$PKG_DIR/init.lua"
+
+    if [ ! -f "$OUTPUT_FILE" ]; then
+      NEEDS_BUILD=1
+    elif [ "tsconfig.base.json" -nt "$OUTPUT_FILE" ]; then
+      NEEDS_BUILD=1
+    else
+      NEWER_FILES=$(find "$PKG_DIR" -type f \( -name "*.ts" -o -name "*.json" \) -newer "$OUTPUT_FILE" | head -n 1)
+      if [ -n "$NEWER_FILES" ]; then
+        NEEDS_BUILD=1
+      fi
+    fi
+
+    if [ "$NEEDS_BUILD" -eq 1 ]; then
+      echo " -> Recompiling $PKG_DIR..."
+      npm run build --workspace="$PKG_DIR"
+    else
+      echo " -> Skipping $PKG_DIR (up to date)"
+    fi
+  fi
+done
 
 echo "Packaging system components..."
 for pkg_json in $(find src/daemons src/libsystem src/utils -name "package.json" 2>/dev/null); do
