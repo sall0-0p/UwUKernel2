@@ -37,8 +37,8 @@ function MountRegistry.resolve(path)
     if bestMatch then
         local relativePath = path:sub(longestLen + 1)
 
-        if relativePath == "" then
-            relativePath = "/"
+        if relativePath == "" or relativePath:sub(1, 1) ~= "/" then
+            relativePath = "/" .. relativePath
         end
 
         return bestMatch, relativePath

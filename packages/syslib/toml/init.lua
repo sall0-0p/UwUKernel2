@@ -251,7 +251,6 @@ end
 local function encodeTOML(tbl, opts, names)
     local retval = ""
     local indent = opts.indent == false and "" or ("    "):rep(#names)
-    if #names > 0 then retval = ("%s[%s]\n"):format(("    "):rep(#names - 1), table.concat(names, ".")) end
     local tbls, arrs = {}, {}
     local e = #names + 1
     for k, v in pairs(tbl) do

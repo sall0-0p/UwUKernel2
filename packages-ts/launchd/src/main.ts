@@ -47,8 +47,8 @@ proc.spawn("/System/ccfsd/init.lua", [ "-v", "volume:data", "--path", "/dev/vol1
 ipc.receive(mailbox);
 print("Received on mailbox for datavold!");
 
-proc.spawn("/System/rootfsd/init.lua", [ "--volumes", "/dev/vol0", "/dev/vol1", "--path", "/" ], {
-    name: "rootfsd",
+proc.spawn("/System/rootfsd/init.lua", [ "--volume", "/dev/vol0", "--path", "/" ], {
+    name: "systemfsd",
     blob: rootfsdBlob,
     // @ts-ignore
     preload: package.preload,
@@ -69,17 +69,16 @@ const reaper = task.create(() => {
     }
 })
 
-fs.mkdir("/dev/vol1/test/")
+fs.mkdir("/test/");
 
-const wfile = fs.open("/dev/vol1/test/world.txt", "w");
+const wfile = fs.open("/test/world.txt", "w");
 fs.write(wfile, "Hello World!");
 fs.close(wfile);
 
-const rfile = fs.open("/dev/vol1/test/world.txt", "r");
+const rfile = fs.open("/test/world.txt", "r");
 print(fs.read(rfile, 100000));
 fs.close(rfile);
 
-print("Waiting for all processes to exit.");
 task.join(reaper);
 print("Launchd exiting!");
 proc.exit(0);
