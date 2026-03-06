@@ -1,82 +1,58 @@
+#!/bin/bash
+set -e
+
 ROOT_DIR=$PWD
+OUT_DIR="$ROOT_DIR/out"
+CRAFTOS_DIR="/Users/bucket/Library/Application Support/CraftOS-PC/computer/0"
 
-# == clean
-rm -rf /Users/bucket/Library/Application\ Support/CraftOS-PC/computer/0/System
-rm -rf /Users/bucket/Library/Application\ Support/CraftOS-PC/computer/0/startup.lua
-rm -rf out/
+echo "Cleaning build directories..."
+rm -rf "$CRAFTOS_DIR/System"
+rm -rf "$CRAFTOS_DIR/startup.lua"
+rm -rf "$OUT_DIR"
 
-mkdir -p out/System/System
-mkdir -p out/System/Library
+mkdir -p "$OUT_DIR/System/System"
+mkdir -p "$OUT_DIR/System/Library"
 
-# == version tracking
+# version control
 VERSION_MAJOR="UwUntuCC Alpha 1"
 BUILD=$(git rev-list --count HEAD 2>/dev/null || echo 0)
-
 echo "Deploying Build #$BUILD..."
 
-# == compile ts stuff
-echo "Building typescript packages"
+# bulding packages
+echo "Building all workspace packages..."
+npm run build:all
 
-# launchd
-PACKAGE="launchd"
-cd packages-ts/$PACKAGE
-if [ -n "$(find src -name "*.ts" -newer init.lua 2>/dev/null)" ] || [ ! -f init.lua ]; then
-    echo "Changes detected in $PACKAGE, recompiling..."
-    npx tstl
-else
-    echo "No changes in $PACKAGE, skipping compilation."
-fi
-cd "$ROOT_DIR"
+echo "Packaging system components..."
+for pkg_json in $(find src/daemons src/libsystem src/utils -name "package.json" 2>/dev/null); do
+  PKG_DIR=$(dirname "$pkg_json")
 
+  TARGET_PATH=$(jq -r '.uwuntu.target // empty' "$pkg_json")
+  PKG_TYPE=$(jq -r '.uwuntu.type // empty' "$pkg_json")
+  ENTRY_LUA=$(jq -r '.uwuntu.entry // empty' "$pkg_json")
+  PKG_NAME=$(jq -r '.name' "$pkg_json")
 
-# ccfsd
-PACKAGE="ccfsd"
-cd packages-ts/$PACKAGE
-if [ -n "$(find src -name "*.ts" -newer init.lua 2>/dev/null)" ] || [ ! -f init.lua ]; then
-    echo "Changes detected in $PACKAGE, recompiling..."
-    npx tstl
-else
-    echo "No changes in $PACKAGE, skipping compilation."
-fi
-cd "$ROOT_DIR"
+  if [ -n "$TARGET_PATH" ]; then
+    echo " -> Processing $PKG_NAME ($PKG_TYPE)..."
+    mkdir -p "$(dirname "$OUT_DIR/$TARGET_PATH")"
 
-PACKAGE="rootfsd"
-cd packages-ts/$PACKAGE
-if [ -n "$(find src -name "*.ts" -newer init.lua 2>/dev/null)" ] || [ ! -f init.lua ]; then
-    echo "Changes detected in $PACKAGE, recompiling..."
-    npx tstl
-else
-    echo "No changes in $PACKAGE, skipping compilation."
-fi
-cd "$ROOT_DIR"
+    if [ "$PKG_TYPE" == "lua-bundle" ]; then
+      echo $PKG_DIR
+      luabundler bundle "$PKG_DIR/$ENTRY_LUA" \
+        -p "$PKG_DIR/src/?.lua" \
+        -p "$PKG_DIR/src/?/init.lua" \
+        -o "$OUT_DIR/$TARGET_PATH"
+    else
+      cp "$PKG_DIR/init.lua" "$OUT_DIR/$TARGET_PATH"
+    fi
+  fi
+done
 
+# moving bootloader
+echo "Copying kernel and boot files..."
+cp -R src/kernel/src "$OUT_DIR/System/System/kernel"
+cp src/boot/startup.lua "$OUT_DIR/startup.lua"
 
-# == copying stuff
-
-# copying kernel
-cp -R packages/kernel out/System/System/kernel
-cp packages/boot/startup.lua out/startup.lua
-
-# copying launchd
-mkdir out/System/System/launchd
-cp packages-ts/launchd/init.lua out/System/System/launchd/init.lua
-
-# copying system library
-luabundler bundle packages/syslib/init.lua \
-  -p "$ROOT_DIR/packages/syslib/?.lua" \
-  -p "$ROOT_DIR/packages/syslib/?/init.lua" \
-  -o out/System/Library/syslib/init.lua
-
-# copying rootfsd
-mkdir out/System/System/rootfsd
-cp packages-ts/rootfsd/init.lua out/System/System/rootfsd/init.lua
-
-# copying ccfsd
-mkdir out/System/System/ccfsd
-cp packages-ts/ccfsd/init.lua out/System/System/ccfsd/init.lua
-
-# == generate version.lua
-cat > out/System/System/kernel/version.lua <<EOF
+cat > "$OUT_DIR/System/System/kernel/version.lua" <<EOF
 return {
     major = "$VERSION_MAJOR",
     build = $BUILD,
@@ -84,11 +60,12 @@ return {
 }
 EOF
 
-# == deploy
-cp -R out/* /Users/bucket/Library/Application\ Support/CraftOS-PC/computer/0/
+# deploy to emulator
+echo "Deploying to CraftOS-PC..."
+cp -R "$OUT_DIR/"* "$CRAFTOS_DIR/"
 echo "Deploy complete!"
 
-# == craftos-pc via CLI
+# run emulator
 if [[ "$1" == "--cli" ]]; then
     echo "Launching CraftOS-PC (CLI Mode)..."
     CRAFTOS_APP="/Applications/CraftOS-PC.app/Contents/MacOS/craftos"

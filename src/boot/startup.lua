@@ -25,6 +25,7 @@ local bootFs = {
     },
 }
 
+print(package.path);
 local kernel = require(".System.System.kernel");
 kernel.createBoot(blob, bootFs);
 kernel.run();

@@ -1,0 +1,25 @@
+{
+  "name": "uwuntucc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MacOS inspired operating system for ComputerCraft",
+  "scripts": {
+    "build:all": "npm run build --workspaces --if-present"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sall0-0p/UwUKernel2.git"
+  },
+  "workspaces": [
+    "src/daemons/*",
+    "src/libsystem",
+    "src/utils/*"
+  ],
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sall0-0p/UwUKernel2/issues"
+  },
+  "homepage": "https://github.com/sall0-0p/UwUKernel2#readme"
+}
