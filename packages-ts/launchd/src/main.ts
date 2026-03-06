@@ -69,6 +69,17 @@ const reaper = task.create(() => {
     }
 })
 
+fs.mkdir("/dev/vol1/test/")
+
+const wfile = fs.open("/dev/vol1/test/world.txt", "w");
+fs.write(wfile, "Hello World!");
+fs.close(wfile);
+
+const rfile = fs.open("/dev/vol1/test/world.txt", "r");
+print(fs.read(rfile, 100000));
+fs.close(rfile);
+
+print("Waiting for all processes to exit.");
 task.join(reaper);
 print("Launchd exiting!");
 proc.exit(0);

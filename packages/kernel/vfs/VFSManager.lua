@@ -235,14 +235,20 @@ end
 ---@param path string
 ---@param destination string
 function VFSManager.rename(pcb, path, destination)
-    local port, relativePath = MountRegistry.resolve(path);
-    if (not port) or (not relativePath) then
+    local srcPort, srcRelative = MountRegistry.resolve(path);
+    local dstPort, dstRelative = MountRegistry.resolve(destination);
+
+    if (not srcPort) or (not dstPort) then
         error("ENOTFOUND: No mount point was resolved for this path.");
     end
 
-    return Promise.send(port, Protocol.Methods.RENAME, {
-        path = relativePath,
-        destination = destination,
+    if srcPort ~= dstPort then
+        error("EXDEV: Cross-device link");
+    end
+
+    return Promise.send(srcPort, Protocol.Methods.RENAME, {
+        path = srcRelative,
+        destination = dstRelative,
         user = {
             uid = pcb.euid,
             gid = pcb.egid,

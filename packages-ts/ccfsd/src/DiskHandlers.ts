@@ -29,4 +29,49 @@ export class DiskHandlers implements IVFSHandlers {
 
         return fs.ioctl(this.device, "list", path);
     }
+
+    onMkdir(path: string, user: UserContext): void {
+        if (user.uid != 0) error("EPERM: Permission denied.", 3);
+        fs.ioctl(this.device, "makeDir", path);
+    }
+
+    onRename(path: string, destination: string, user: UserContext): void {
+        if (user.uid != 0) error("EPERM: Permission denied.", 3);
+        fs.ioctl(this.device, "move", path, destination);
+    }
+
+    onRemove(path: string, user: UserContext): void {
+        if (user.uid != 0) error("EPERM: Permission denied.", 3);
+        fs.ioctl(this.device, "delete", path);
+    }
+
+    onCopy(path: string, destination: string, user: UserContext): void {
+        if (user.uid != 0) error("EPERM: Permission denied.", 3);
+        fs.ioctl(this.device, "copy", path, destination);
+    }
+
+    onStat(path: string, user: UserContext): fs.FileMetadata {
+        if (user.uid != 0) error("EPERM: Permission denied.", 3);
+        const attributes: { size: number, isDir: boolean, isReadOnly: boolean, created: number, modified: number } = fs.ioctl(this.device, "attributes", path);
+        return {
+            uid: 0,
+            gid: 0,
+            size: attributes.size,
+            isDir: attributes.isDir,
+            isLink: false,
+            created: attributes.created,
+            modified: attributes.modified,
+            accessed: 0,
+            permissions: {
+                raw: 0o666,
+                string: "rw-rw-rw-",
+                user: { read: true, write: true, execute: false },
+                group: { read: true, write: true, execute: false },
+                other: { read: true, write: true, execute: false },
+                setuid: false,
+                setgid: false,
+                sticky: false,
+            }
+        }
+    }
 }

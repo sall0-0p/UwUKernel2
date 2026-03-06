@@ -61,7 +61,7 @@ function FileSystemServer:start()
 
             elseif (msgType == "VFS_CLOSE") then
                 local handle = self.openFiles[payload.fileId];
-                if handle and handle.close then handle:close(handle) end;
+                if handle and handle.close then handle:close() end;
                 self.openFiles[payload.fileId] = nil;
                 raw.ipc.send(reply, { status = "OK" });
 
@@ -76,7 +76,7 @@ function FileSystemServer:start()
                 local handle = self.openFiles[payload.fileId];
                 if (not handle) then error("EBADF: Invalid file descriptor passed to driver.", 2) end;
                 if (not handle.write) then error("ENOSYS: Operation write is not supported.", 2) end;
-                local written = handle:write(payload.fileId, payload.data, payload.offset, payload.user);
+                local written = handle:write(payload.data, payload.offset, payload.user);
                 raw.ipc.send(reply, { status = "OK", data = written })
 
             elseif (msgType == "VFS_STAT") then
@@ -119,7 +119,7 @@ function FileSystemServer:start()
                 local handle = self.openFiles[payload.fileId];
                 if (not handle) then error("EBADF: Invalid file descriptor passed to driver.", 2) end;
                 if (not handle.ioctl) then error("ENOSYS: Operation ioctl is not supported.", 2) end;
-                local result = handle:ioctl(payload.fileId, payload.cmd, payload.args, payload.user);
+                local result = handle:ioctl(payload.cmd, payload.args, payload.user);
                 raw.ipc.send(reply, { status = "OK", data = result });
 
             elseif (msgType == "VFS_SHUTDOWN") then
