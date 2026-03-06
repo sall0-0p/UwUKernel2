@@ -5,20 +5,22 @@ local raw = require("native");
 --- @field gid number
 --- @field groups number[]
 
+--- @class FileHandle
+--- @field read function(bytes: number, offset: number, user: UserContext): string
+--- @field write function(data: string, offset: number, user: UserContext): number
+--- @field ioctl function(cmd: string, args: any[], user: UserContext): any
+--- @field close function(): nil
+
 --- @class VFSHandlers
---- @field onOpen function(path: string, mode: string, user: UserContext) -> fileId: number
---- @field onClose function(fileId: number) -> void
---- @field onRead function(fileId: number, bytes: number, offset: number, user: UserContext) -> data: string
---- @field onWrite function(fileId: number, data: string, offset: number, user: UserContext) -> written: number
---- @field onSeek function(fileId: number, offset: number, whence: number) -> position: number
---- @field onStat function(path: string, user: UserContext) -> metadata: table
---- @field onList function(path: string, user: UserContext) -> entries: string[]
---- @field onMkdir function(path: string, user: UserContext) -> void
---- @field onRemove function(path: string, user: UserContext) -> void
---- @field onRename function(path: string, destination: string, user: UserContext) -> void
---- @field onCopy function(path: string, destination: string, user: UserContext) -> void
---- @field onSetattr function(path: string, attr: table, user: UserContext) -> void
---- @field onIoctl function(fileId: number, cmd: string, args: any[], user: UserContext) -> result: any
+--- @field onOpen function(path: string, mode: string, user: UserContext): FileHandle
+--- @field onSeek function(fileId: number, offset: number, whence: number): number
+--- @field onStat function(path: string, user: UserContext): table
+--- @field onList function(path: string, user: UserContext): string[]
+--- @field onMkdir function(path: string, user: UserContext): nil
+--- @field onRemove function(path: string, user: UserContext): nil
+--- @field onRename function(path: string, destination: string, user: UserContext): nil
+--- @field onCopy function(path: string, destination: string, user: UserContext): nil
+--- @field onSetattr function(path: string, attr: table, user: UserContext): nil
 
 --- @class FileSystemServer
 --- @field port number port messages are being sent to.
@@ -34,6 +36,8 @@ function FileSystemServer.new(handlers)
     server.port = raw.ipc.create();
     server.handlers = handlers;
     server.running = false;
+    server.openFiles = {};
+    server.nextFileId = 1;
     return server;
 end
 
@@ -47,65 +51,76 @@ function FileSystemServer:start()
 
         local ok, err = pcall(function()
             if (msgType == "VFS_OPEN") then
-                if (not self.handlers.onOpen) then error("ENOSYS: Operation open is not available.") end
-                local fileId = self.handlers.onOpen(payload.path, payload.mode, payload.user)
-                raw.ipc.send(reply, { status = "OK", data = { fileId = fileId } })
+                if (not self.handlers.onOpen) then error("ENOSYS: Operation open is not available.", 2) end
+                local fileHandle = self.handlers:onOpen(payload.path, payload.mode, payload.user);
+                local fileId = self.nextFileId;
+                self.nextFileId = self.nextFileId + 1;
+                self.openFiles[fileId] = fileHandle;
+
+                raw.ipc.send(reply, { status = "OK", data = { fileId = fileId } });
 
             elseif (msgType == "VFS_CLOSE") then
-                if (not self.handlers.onClose) then error("ENOSYS: Operation close is not available.") end
-                self.handlers.onClose(payload.fileId)
-                raw.ipc.send(reply, { status = "OK" })
+                local handle = self.openFiles[payload.fileId];
+                if handle and handle.close then handle:close(handle) end;
+                self.openFiles[payload.fileId] = nil;
+                raw.ipc.send(reply, { status = "OK" });
 
             elseif (msgType == "VFS_READ") then
-                if (not self.handlers.onRead) then error("ENOSYS: Operation read is not available.") end
-                local data = self.handlers.onRead(payload.fileId, payload.bytes, payload.offset, payload.user)
+                local handle = self.openFiles[payload.fileId];
+                if (not handle) then error("EBADF: Invalid file descriptor passed to driver.", 2) end;
+                if (not handle.read) then error("ENOSYS: Operation read is not supported.", 2) end;
+                local data = handle:read(payload.bytes, payload.offset, payload.user);
                 raw.ipc.send(reply, { status = "OK", data = data })
 
             elseif (msgType == "VFS_WRITE") then
-                if (not self.handlers.onWrite) then error("ENOSYS: Operation write is not available.") end
-                local written = self.handlers.onWrite(payload.fileId, payload.data, payload.offset, payload.user)
+                local handle = self.openFiles[payload.fileId];
+                if (not handle) then error("EBADF: Invalid file descriptor passed to driver.", 2) end;
+                if (not handle.write) then error("ENOSYS: Operation write is not supported.", 2) end;
+                local written = handle:write(payload.fileId, payload.data, payload.offset, payload.user);
                 raw.ipc.send(reply, { status = "OK", data = written })
 
             elseif (msgType == "VFS_STAT") then
-                if (not self.handlers.onStat) then error("ENOSYS: Operation stat is not available.") end
+                if (not self.handlers.onStat) then error("ENOSYS: Operation stat is not available.", 2) end
                 -- Handle VFS_STAT being called with path OR fileId (for seek end)
-                local metadata = self.handlers.onStat(payload.path or payload.fileId, payload.user)
+                local metadata = self.handlers:onStat(payload.path or payload.fileId, payload.user)
                 raw.ipc.send(reply, { status = "OK", data = metadata })
 
             elseif (msgType == "VFS_LIST") then
-                if (not self.handlers.onList) then error("ENOSYS: Operation list is not available.") end
-                local entries = self.handlers.onList(payload.path, payload.user)
+                if (not self.handlers.onList) then error("ENOSYS: Operation list is not available.", 2) end
+                local entries = self.handlers:onList(payload.path, payload.user)
                 raw.ipc.send(reply, { status = "OK", data = entries })
 
             elseif (msgType == "VFS_MKDIR") then
-                if (not self.handlers.onMkdir) then error("ENOSYS: Operation mkdir is not available.") end
-                self.handlers.onMkdir(payload.path, payload.user)
+                if (not self.handlers.onMkdir) then error("ENOSYS: Operation mkdir is not available.", 2) end
+                self.handlers:onMkdir(payload.path, payload.user)
                 raw.ipc.send(reply, { status = "OK" })
 
             elseif (msgType == "VFS_REMOVE") then
-                if (not self.handlers.onRemove) then error("ENOSYS: Operation remove is not available.") end
-                self.handlers.onRemove(payload.path, payload.user)
+                if (not self.handlers.onRemove) then error("ENOSYS: Operation remove is not available.", 2) end
+                self.handlers:onRemove(payload.path, payload.user)
                 raw.ipc.send(reply, { status = "OK" })
 
             elseif (msgType == "VFS_RENAME") then
-                if (not self.handlers.onRename) then error("ENOSYS: Operation rename is not available.") end
-                self.handlers.onRename(payload.path, payload.destination, payload.user)
+                if (not self.handlers.onRename) then error("ENOSYS: Operation rename is not available.", 2) end
+                self.handlers:onRename(payload.path, payload.destination, payload.user)
                 raw.ipc.send(reply, { status = "OK" })
 
             elseif (msgType == "VFS_COPY") then
-                if (not self.handlers.onCopy) then error("ENOSYS: Operation copy is not available.") end
-                self.handlers.onCopy(payload.path, payload.destination, payload.user)
+                if (not self.handlers.onCopy) then error("ENOSYS: Operation copy is not available.", 2) end
+                self.handlers:onCopy(payload.path, payload.destination, payload.user)
                 raw.ipc.send(reply, { status = "OK" })
 
             elseif (msgType == "VFS_SETATTR") then
-                if (not self.handlers.onSetattr) then error("ENOSYS: Operation setattr is not available.") end
-                self.handlers.onSetattr(payload.path, payload.attr, payload.user)
+                if (not self.handlers.onSetattr) then error("ENOSYS: Operation setattr is not available.", 2) end
+                self.handlers:onSetattr(payload.path, payload.attr, payload.user)
                 raw.ipc.send(reply, { status = "OK" })
 
             elseif (msgType == "VFS_IOCTL") then
-                if (not self.handlers.onIoctl) then error("ENOSYS: Operation ioctl is not available.") end
-                local result = self.handlers.onIoctl(payload.fileId, payload.cmd, payload.args, payload.user)
-                raw.ipc.send(reply, { status = "OK", data = result })
+                local handle = self.openFiles[payload.fileId];
+                if (not handle) then error("EBADF: Invalid file descriptor passed to driver.", 2) end;
+                if (not handle.ioctl) then error("ENOSYS: Operation ioctl is not supported.", 2) end;
+                local result = handle:ioctl(payload.fileId, payload.cmd, payload.args, payload.user);
+                raw.ipc.send(reply, { status = "OK", data = result });
 
             elseif (msgType == "VFS_SHUTDOWN") then
                 self.running = false

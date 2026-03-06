@@ -17,11 +17,11 @@ function fs.open(tcb, path, mode, opts)
     return VFSManager.open(pcb, path, mode, opts);
 end
 
-function fs.close(tcb, path)
-    assert(type(path) == "string", "EINVAL: Bad argument #1: Path must be a string.");
+function fs.close(tcb, fd)
+    assert(type(fd) == "number", "EINVAL: Bad argument #1: File descriptor must be a number.");
     local pcb = ProcessRegistry.get(tcb.pid);
 
-    return VFSManager.close(pcb, path);
+    return VFSManager.close(pcb, fd);
 end
 
 function fs.read(tcb, fd, number, offset)

@@ -7,10 +7,10 @@ const stdout = io.dup(terminal, 2);
 fs.ioctl(terminal, "clear", 4);
 fs.ioctl(terminal, "setTextColor", 4);
 fs.ioctl(terminal, "setCursorPos", 1, 1);
-fs.write(terminal, `| ${sys.info().version}`);
+fs.write(terminal, `| ${sys.info().version} \n`);
 fs.ioctl(terminal, "setTextColor", 1);
 
-fs.write(stdout, `Hello from ${proc.info().name} (${proc.info().pid})!`);
+fs.write(stdout, `Hello from ${proc.info().name} (${proc.info().pid})! \n`);
 
 // loading blobs
 const ccfsdBlob: string = arg['ccfsd'];
@@ -69,10 +69,6 @@ const reaper = task.create(() => {
     }
 })
 
-print("Eating forbidden fruit!");
-const items = fs.open("/dev/vol0", "w");
-
-print("Aah aah aah aah! Staying alive! Staying alive!");
 task.join(reaper);
 print("Launchd exiting!");
 proc.exit(0);

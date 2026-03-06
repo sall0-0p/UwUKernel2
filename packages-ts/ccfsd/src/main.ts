@@ -1,4 +1,4 @@
-import {fs, ipc, proc} from "libsystem.raw";
+import {dev, fs, ipc, proc} from "libsystem.raw";
 import * as utils from "libsystem.utils";
 import {IExpectedArguments} from "./interfaces/IExpectedArguments";
 import {FileSystemServer} from "libsystem.vfs";
@@ -13,7 +13,9 @@ const parsedArgs: IExpectedArguments = utils.parseArguments(arg, {
     "path": true,
 });
 
-const server = new FileSystemServer(new DiskHandlers(parsedArgs.volume));
+if (!parsedArgs.volume) error("Volume must be specified using -v or --volume");
+const volume = dev.open(parsedArgs.volume);
+const server = new FileSystemServer(new DiskHandlers(volume));
 const port = server.getPortId();
 fs.mount(parsedArgs.path, port);
 

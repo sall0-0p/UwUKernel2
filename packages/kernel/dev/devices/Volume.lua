@@ -1,3 +1,5 @@
+local Utils = require("misc.Utils");
+
 --- @class VolumeWrapper
 local VolumeWrapper = {};
 VolumeWrapper.__index = VolumeWrapper;
@@ -26,13 +28,16 @@ end
 
 --- Resolves a virtual path to a physical path within the volume root.
 local function resolve(root, path)
-    local combined = fs.combine(root, path)
+    print("Resolving", root, path);
+    local combined = "/" .. fs.combine(root, path);
 
+    print("Combined", combined);
     if combined:sub(1, #root) ~= root then
-        return root
+        print("Returning root", root);
+        return root;
     end
 
-    return combined
+    return combined;
 end
 
 --- Calls a method

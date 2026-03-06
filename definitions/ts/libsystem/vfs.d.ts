@@ -9,11 +9,15 @@ declare module "libsystem.vfs" {
             groups: number[],
         }
 
-        export interface VFSHandlers {
-            onOpen?: (path: string, mode: string, user: UserContext) => number;
-            onClose?: (fileId: number) => void;
-            onRead?: (fileId: number, bytes: number, offset: number, user: UserContext) => string;
-            onWrite?: (fileId: number, data: string, offset: number, user: UserContext) => number;
+        export interface IFileHandle {
+            read?: (bytes: number, offset: number, user: UserContext) => string;
+            write?: (data: string, offset: number, user: UserContext) => number;
+            ioctl?: (cmd: string, args: any[], user: UserContext) => any;
+            close?: () => void;
+        }
+
+        export interface IVFSHandlers {
+            onOpen?: (path: string, mode: string, user: UserContext) => IFileHandle;
             onStat?: (path: string, user: UserContext) => fs.FileMetadata;
             onList?: (path: string, user: UserContext) => string[];
             onMkdir?: (path: string, user: UserContext) => void;
@@ -21,12 +25,11 @@ declare module "libsystem.vfs" {
             onRename?: (path: string, destination: string, user: UserContext) => void;
             onCopy?: (path: string, destination: string, user: UserContext) => void;
             onSetattr?: (path: string, attr: fs.SettableAttributes, user: UserContext) => void;
-            onIoctl?: (fileId: number, cmd: string, args: any[], user: UserContext) => any;
         }
 
         /** @customConstructor FileSystemServer.new */
         export class FileSystemServer {
-            constructor(handlers: VFSHandlers)
+            constructor(handlers: IVFSHandlers)
 
             start(): void
             stop(): void

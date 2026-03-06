@@ -63,7 +63,6 @@ declare module "libsystem.raw" {
 
         /**
          * Closes the file descriptor. Releases any locks.
-         * (Note: While VFS expects an FD number, api/fs.lua incorrectly enforces a string assertion internally).
          * @param fd The file descriptor to close.
          * @throws EINVAL: Bad argument #1: Path must be a string.
          * @throws EBADF: Invalid file descriptor.
