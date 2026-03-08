@@ -109,27 +109,11 @@ function Scheduler.run()
                     -- crash
                     -- TODO: Remove this, write to stderr or smth
                     local rawTrace = debug.traceback(tcb.co);
-                    local lines = {};
-
-                    for line in rawTrace:gmatch("[^\r\n]+") do
-                        if not line:find("EnvironmentFactory.lua")
-                                and not line:find("ThreadManager.lua")
-                                and not line:find("stack traceback:")
-                                and not line:find("[C]", 1, true)
-                                and not line:find("tail calls", 1, true) then
-
-                            local cleanedLine = line:gsub("^%s+", ""):gsub("%.%.%.", "");
-                            table.insert(lines, cleanedLine);
-                        end
-                    end
-
-                    local cleanTrace = table.concat(lines, "\n");
+                    local cleanTrace = rawTrace;
 
                     term.setTextColor(16384); -- red
                     print("[" .. tid .. "] " .. tostring(trap):gsub("^.-:%d+: ", ""));
-                    if #lines > 0 then
-                        print(cleanTrace);
-                    end
+                    print(cleanTrace);
                     term.setTextColor(1);
 
                     local ProcessManager = require("proc.ProcessManager");
