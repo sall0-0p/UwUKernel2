@@ -26,13 +26,18 @@ declare module "libsystem.raw" {
             maxPorts: number;
         }
 
+        export interface ShareProperties {
+            fd: number,
+            op: "SHARE" | "MOVE",
+        }
+
         export interface SpawnAttributes {
             /** Map of environment variables to pass to the process */
             env?: Record<string, string>;
             /** Working directory path */
             cwd?: string;
             /** Map of child file descriptors to parent file descriptors */
-            fds?: Record<number, FileDescriptor>;
+            fds?: Record<number, FileDescriptor | ShareProperties>;
             /** Run as user ID (requires root) */
             uid?: number;
             /** Run as group ID (requires root) */

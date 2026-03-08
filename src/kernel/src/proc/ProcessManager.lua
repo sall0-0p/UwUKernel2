@@ -81,24 +81,26 @@ function ProcessManager.spawn(ppid, path, args, attr)
 
     -- File descriptor inheritance / passing.
     if (parent and attr.fds) then
-        for childFd, parentFd in pairs(attr.fds) do
+        for childFd, value in pairs(attr.fds) do
+            local parentFd = type(value) == "table" and value.fd or value;
+            local op = type(value) == "table" and value.op or "SHARE";
+
             local globalId = parent.handles[parentFd];
-            if (not globalId) then
-                error("EBADF: Parent handle " .. tostring(parentFd) .. " is invalid");
+            if not globalId then error("EBADF: Parent handle is invalid") end
+
+            if op == "SHARE" then
+                -- if no operation, or share is passed, we convert all receive rights into send rights
+                -- and clone fd
+                local migratedId = IPCManager.migrateRight(globalId);
+                ObjectManager.link(child, migratedId, childFd);
+            elseif op == "MOVE" then
+                -- if operation move is defined, we move all fds without cloning
+                ObjectManager.link(child, globalId, childFd);
+                ObjectManager.close(parent, parentFd);
+            else
+                error("EINVAL: Unknown fd operation")
             end
-
-            globalId = IPCManager.migrateRight(globalId);
-
-            ObjectManager.link(child, globalId, childFd);
         end
-    elseif (parent) then
-        for localFd, globalId in pairs(parent.handles) do
-            globalId = IPCManager.migrateRight(globalId);
-
-            ObjectManager.link(child, globalId, localFd);
-        end
-    else
-        -- TODO: Create some basic handles for our lovely launchd.
     end
 
     ProcessRegistry.register(newPid, child);
