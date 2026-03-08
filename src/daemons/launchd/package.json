@@ -15,6 +15,6 @@
   },
   "uwuntu": {
     "type": "daemon",
-    "target": "System/System/launchd/init.lua"
+    "target": "System/Core/launchd/init.lua"
   }
 }

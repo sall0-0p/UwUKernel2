@@ -17,6 +17,6 @@
   },
   "uwuntu": {
     "type": "daemon",
-    "target": "System/System/ccfsd/init.lua"
+    "target": "System/Core/ccfsd/init.lua"
   }
 }

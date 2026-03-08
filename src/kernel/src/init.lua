@@ -1,5 +1,5 @@
 -- patch package.path
-package.path = package.path .. ";/System/System/kernel/?.lua;/System/System/kernel/?/init.lua";
+package.path = package.path .. ";/System/Core/kernel/?.lua;/System/Core/kernel/?/init.lua";
 
 local Kernel = {};
 

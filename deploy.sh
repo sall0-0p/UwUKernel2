@@ -10,8 +10,12 @@ rm -rf "$CRAFTOS_DIR/System"
 rm -rf "$CRAFTOS_DIR/startup.lua"
 rm -rf "$OUT_DIR"
 
-mkdir -p "$OUT_DIR/System/System"
-mkdir -p "$OUT_DIR/System/Library"
+mkdir -p "$OUT_DIR/System/Core"
+
+# bundling resources
+cp -R src/resources/Config "$OUT_DIR/System/Config"
+cp -R src/resources/Library "$OUT/System/Library"
+cp -R src/resources/Bin "$OUT/System/Bin"
 
 # version control
 VERSION_MAJOR="UwUntuCC Alpha 1"
@@ -61,7 +65,6 @@ for pkg_json in $(find src/daemons src/libsystem src/utils -name "package.json" 
     mkdir -p "$(dirname "$OUT_DIR/$TARGET_PATH")"
 
     if [ "$PKG_TYPE" == "lua-bundle" ]; then
-      echo $PKG_DIR
       luabundler bundle "$PKG_DIR/$ENTRY_LUA" \
         -p "$PKG_DIR/src/?.lua" \
         -p "$PKG_DIR/src/?/init.lua" \
@@ -74,10 +77,10 @@ done
 
 # moving bootloader
 echo "Copying kernel and boot files..."
-cp -R src/kernel/src "$OUT_DIR/System/System/kernel"
+cp -R src/kernel/src "$OUT_DIR/System/Core/kernel"
 cp src/boot/startup.lua "$OUT_DIR/startup.lua"
 
-cat > "$OUT_DIR/System/System/kernel/version.lua" <<EOF
+cat > "$OUT_DIR/System/Core/kernel/version.lua" <<EOF
 return {
     major = "$VERSION_MAJOR",
     build = $BUILD,

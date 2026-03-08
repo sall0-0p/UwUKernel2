@@ -15,6 +15,6 @@
   },
   "uwuntu": {
     "type": "daemon",
-    "target": "System/System/rootfsd/init.lua"
+    "target": "System/Core/rootfsd/init.lua"
   }
 }

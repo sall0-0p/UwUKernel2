@@ -10,8 +10,6 @@ fs.ioctl(terminal, "setCursorPos", 1, 1);
 fs.write(terminal, `| ${sys.info().version} \n`);
 fs.ioctl(terminal, "setTextColor", 1);
 
-fs.write(stdout, `Hello from ${proc.info().name} (${proc.info().pid})! \n`);
-
 // loading blobs
 const ccfsdBlob: string = arg['ccfsd'];
 const rootfsdBlob: string = arg['rootfsd'];
