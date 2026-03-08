@@ -6,3 +6,7 @@ declare type FileDescriptor = number | PortId;
 
 declare const _HOST: string;
 declare const arg: string[];
+
+declare namespace debug {
+    export function serialize(obj: object): string
+}

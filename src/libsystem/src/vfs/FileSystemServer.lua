@@ -33,7 +33,6 @@ FileSystemServer.__index = FileSystemServer;
 ---@param handlers VFSHandlers
 function FileSystemServer.new(handlers)
     local server = setmetatable({}, FileSystemServer);
-    server.port = raw.ipc.create();
     server.handlers = handlers;
     server.running = false;
     server.openFiles = {};
@@ -41,8 +40,14 @@ function FileSystemServer.new(handlers)
     return server;
 end
 
+---Starts server
 function FileSystemServer:start()
-    self.running = true
+    self.running = true;
+
+    if not self.port then
+        self.port = raw.ipc.create();
+    end
+
     while (self.running) do
         local message = raw.ipc.receive(self.port)
         local msgType = message.type
@@ -139,13 +144,26 @@ function FileSystemServer:start()
     end
 end
 
+--- Stops server
 function FileSystemServer:stop()
     self.running = false;
     raw.ipc.send(self.port, {}, { type = "VFS_SHUTDOWN" });
 end
 
+--- Returns port server is listening on
 function FileSystemServer:getPortId()
+    if (not self.port) then
+        self.port = raw.ipc.create();
+    end
     return self.port;
+end
+
+--- Sets port for server to listen on
+--- @param fd number
+function FileSystemServer:setPortId(fd)
+    -- technically, can be addressed, but I do not see use cases yet for switching ports while running
+    if (self.running) then error("Server is already running!") end;
+    self.port = fd;
 end
 
 return FileSystemServer;
