@@ -4,8 +4,6 @@
   "description": "Abstraction for default CC filesystem as a device.",
   "license": "ISC",
   "author": "",
-  "type": "commonjs",
-  "main": "index.js",
   "scripts": {
     "build": "npx tstl",
     "test": "echo \"Error: no test specified\" && exit 1"

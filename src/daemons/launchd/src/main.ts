@@ -1,5 +1,6 @@
 import {dev, fs, proc, ipc, io, sys, task} from "libsystem.raw";
 import * as toml from "libsystem.toml";
+import {ServiceRegistry} from "./service/ServiceRegistry";
 
 const terminal = dev.open("terminal");
 const stdout = io.dup(terminal, 2);
@@ -82,16 +83,7 @@ const reaper = task.create(() => {
     }
 })
 
-// Testing
-const services = fs.list("/System/Config/Services");
-print('"/":', debug.serialize(services));
-
-const file = fs.open("/System/Config/Services/" + services[0], "r");
-const raw = fs.read(file, 4096);
-fs.close(file);
-
-const object = toml.decode(raw);
-print('TOML:', debug.serialize(object));
+ServiceRegistry.discover("/System/Config/Services");
 
 task.join(reaper);
 print("Launchd exiting!");
