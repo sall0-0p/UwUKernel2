@@ -1,6 +1,6 @@
 export interface IServiceBlock {
     Name: string,
-    Type?: string,
+    Type?: "simple" | "notify",
     Description?: string,
 }
 

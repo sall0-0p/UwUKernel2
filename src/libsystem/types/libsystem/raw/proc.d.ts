@@ -52,6 +52,8 @@ declare module "libsystem.raw" {
             blob?: string;
             /** Injects into `package.preload` of a child process environment */
             preload?: Record<string, any>;
+            /** Sets parent of process, only root */
+            parent?: ProcessId,
         }
 
         export interface WaitReturns {

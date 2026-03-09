@@ -7,7 +7,7 @@ export interface IService {
     ipcPort?: number,
     mountPort?: number,
     definition: IServiceDefinition,
-    status: "running" | "starting" | "dead" | "off"
+    status: "running" | "listening" |  "starting" | "dead" | "off"
 }
 
 export namespace ServiceRegistry {
@@ -19,10 +19,11 @@ export namespace ServiceRegistry {
         files.forEach((fileName) => {
             const file = fs.open(path + "/" + fileName, "r");
             const config = fs.read(file, 32768);
+            const def = toml.decode(config) as IServiceDefinition;
 
             fs.close(file);
-            services.set(fileName.replace(".toml", ""), {
-                definition: toml.decode(config) as IServiceDefinition,
+            services.set(def.Service.Name, {
+                definition: def,
                 status: "off",
             });
         })

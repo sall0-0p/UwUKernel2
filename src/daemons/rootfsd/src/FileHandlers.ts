@@ -34,21 +34,21 @@ export class FileHandlers implements IVFSHandlers {
         // TODO: Add permission checks
         // TODO: Check if there is already existing file at destination
 
-        fs.rename(path, destination);
+        fs.rename(this.volume + path, destination);
     }
 
     onRemove(path: string, user: UserContext) {
         // TODO: Add permission checks
         // TODO: Check if not root
 
-        fs.remove(path);
+        fs.remove(this.volume + path);
     }
 
     onCopy(path: string, destination: string, user: UserContext) {
         // TODO: Add permission checks
         // TODO: Check if there is already existing file at destination
 
-        fs.copy(path, destination);
+        fs.copy(this.volume + path, destination);
     }
 
     onSetattr(path: string, attr: fs.SettableAttributes, user: UserContext) {
@@ -59,7 +59,27 @@ export class FileHandlers implements IVFSHandlers {
     onStat(path: string): fs.FileMetadata {
         // TODO: Add permission checks
         // TODO: Check attributes
-        return {} as unknown as fs.FileMetadata;
+        const blockMeta = fs.stat(this.volume + path);
+        return {
+            uid: 0,
+            gid: 0,
+            size: blockMeta.size,
+            isDir: blockMeta.isDir,
+            isLink: false,
+            created: blockMeta.created,
+            modified: blockMeta.modified,
+            accessed: blockMeta.accessed,
+            permissions: {
+                raw: 0o774,
+                string: "rw-rw-r--",
+                user: { read: true, write: true, execute: true },
+                group: { read: true, write: true, execute: true },
+                other: { read: true, write: false, execute: false },
+                setuid: false,
+                setgid: false,
+                sticky: false,
+            }
+        };
     }
 }
 

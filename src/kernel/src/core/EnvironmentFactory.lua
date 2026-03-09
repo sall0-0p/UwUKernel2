@@ -12,7 +12,7 @@ function EnvironmentFactory.getEnvironment(pid, args)
             preload = {},
             loaded = {},
             -- TODO: Put path here
-            path = "",
+            path = "/System/Library/?.lua;/System/Library/?/init.lua;/?.lua;/?/init.lua",
         },
 
         -- calling syscalls

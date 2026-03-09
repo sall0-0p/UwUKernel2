@@ -1,6 +1,7 @@
 import {dev, fs, proc, ipc, io, sys, task} from "libsystem.raw";
 import * as toml from "libsystem.toml";
 import {ServiceRegistry} from "./service/ServiceRegistry";
+import {ServiceRunner} from "./service/ServiceRunner";
 
 const terminal = dev.open("terminal");
 const stdout = io.dup(terminal, 2);
@@ -84,6 +85,10 @@ const reaper = task.create(() => {
 })
 
 ServiceRegistry.discover("/System/Config/Services");
+ServiceRegistry.getServices().forEach((s, n) => print(n));
+ServiceRunner.run();
+
+print(mailbox);
 
 task.join(reaper);
 print("Launchd exiting!");

@@ -1,6 +1,6 @@
 [Service]
 # name of process, required
-Name = "exampled"
+Name = "dependencyd"
 # optional, humanreadable description, basically a comment.
 Description = "This file is example of Service configuration"
 # way in which service is marked as ready
@@ -68,7 +68,7 @@ Wants = []
 # requires to be started after dependency have fully loaded
 # and marked itself as ready
 # optional, default: []
-After = ["dependencyd"]
+After = []
 # requires to be launched before another service, inverse After
 # optional, default: []
 Before = []

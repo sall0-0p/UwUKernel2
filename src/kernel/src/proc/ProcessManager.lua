@@ -30,7 +30,7 @@ end
 ---@return number pid of a newly created process.
 function ProcessManager.spawn(ppid, path, args, attr)
     -- Check parent and validate permissions.
-    local parent = ProcessRegistry.get(ppid);
+    local parent = ProcessRegistry.get(attr.parent or ppid);
     if (not parent) then error("ESRSH: Invalid parent.") end;
     attr = attr or {};
 
@@ -49,6 +49,10 @@ function ProcessManager.spawn(ppid, path, args, attr)
         error("EPERM: No permission.");
     end
 
+    if (attr.parent and currentUid ~= 0) then
+        error("EPERM: No permission.");
+    end
+
     -- TODO: Replace with more sophisticated check!
     if (attr.limits and currentUid ~= 0) then
         error("EPERM: No permission.");
@@ -61,7 +65,7 @@ function ProcessManager.spawn(ppid, path, args, attr)
     local targetGroups = attr.groups or (parent and parent.groups or {});
     local child = Process.new(
             newPid,
-            ppid,
+            attr.parent or ppid,
             attr.name or path,
             targetUid, targetGid
     );
