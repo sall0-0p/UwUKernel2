@@ -12,6 +12,7 @@ declare module "libsystem.vfs" {
         export interface IFileHandle {
             read?: (bytes: number, offset: number, user: UserContext) => string;
             write?: (data: string, offset: number, user: UserContext) => number;
+            flush?: (user: UserContext) => void;
             ioctl?: (cmd: string, args: any[], user: UserContext) => any;
             close?: () => void;
         }

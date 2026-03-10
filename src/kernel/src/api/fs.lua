@@ -42,6 +42,13 @@ function fs.write(tcb, fd, data, offset)
     return VFSManager.write(pcb, fd, data, offset);
 end
 
+function fs.flush(tcb, fd)
+    assert(type(fd) == "number", "EINVAL: Bad argument #1: File descriptor must be a number.");
+    local pcb = ProcessRegistry.get(tcb.pid);
+
+    return VFSManager.flush(pcb, fd);
+end
+
 function fs.seek(tcb, fd, offset, whence)
     assert(type(fd) == "number", "EINVAL: Bad argument #1: File descriptor must be a number.");
     assert(type(offset) == "number", "EINVAL: Bad argument #2: Offset must be a number.");
@@ -142,4 +149,5 @@ return {
     [79] = fs.copy,
     [80] = fs.copy,
     [81] = fs.mkdir,
+    [82] = fs.flush,
 }

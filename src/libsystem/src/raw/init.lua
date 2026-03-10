@@ -41,6 +41,7 @@ local library = {
         copy = 79,
         remove = 80,
         mkdir = 81,
+        flush = 82,
     },
 
     io = {

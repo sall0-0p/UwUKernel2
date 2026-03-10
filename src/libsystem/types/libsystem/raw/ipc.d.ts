@@ -89,5 +89,15 @@ declare module "libsystem.raw" {
          * @throws EINTERNAL: Right points to invalid port
          */
         export function stat(port: PortId): IpcStat;
+
+        /**
+         * Check if queue in one of the provided ports is not empty,
+         * than return file descriptor of non-empty port.
+         * Does not read message itself.
+         * @param ports The port (or ports) to inspect.
+         * @throws EBADF: Invalid file descriptor.
+         * @throws EBADF: File descriptor is not a port receive right.
+         */
+        export function poll(ports: PortId | PortId[]): PortId;
     }
 }

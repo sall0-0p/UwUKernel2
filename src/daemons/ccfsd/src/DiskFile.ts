@@ -22,6 +22,11 @@ export class DiskFile implements IFileHandle {
         return data.length;
     }
 
+    public flush(user: UserContext): void {
+        if (this.mode != "w" && this.mode != "a") error("EINVAL: File has to be open in mode capable of flushing.");
+        (this.handle as WriteHandle).flush();
+    }
+
     public close() {
         this.handle.close();
     }

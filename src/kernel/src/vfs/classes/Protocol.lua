@@ -5,6 +5,7 @@ VFSProtocol.Methods = {
     CLOSE = "VFS_CLOSE",
     READ = "VFS_READ",
     WRITE = "VFS_WRITE",
+    FLUSH = "VFS_FLUSH",
     SEEK = "VFS_SEEK",
     STAT = "VFS_STAT",
     LIST = "VFS_LIST",

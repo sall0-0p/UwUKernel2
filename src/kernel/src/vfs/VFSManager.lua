@@ -33,9 +33,14 @@ function VFSManager.open(pcb, path, mode, options)
             gid = pcb.egid,
             groups = pcb.groups,
         },
-    }, function(data) -- callback, { fileId }
-        local kobj = KernelObject.new("FILE", FileDescriptor.new(port, data.fileId, mode));
+    }, function(data) -- callback, { fileId, size }
+        local fileDescriptor = FileDescriptor.new(port, data.fileId, mode);
+        local kobj = KernelObject.new("FILE", fileDescriptor);
         local fd = ObjectManager.createHandle(pcb, kobj);
+
+        if mode:find("a") and type(data.size) == "number" then
+            fileDescriptor.cursor = data.size;
+        end
 
         return { fd };
     end);
@@ -113,6 +118,27 @@ function VFSManager.write(pcb, fd, data, offset)
     end
 
     return file:write(pcb, data, absolute);
+end
+
+---Flushes a file to a disk.
+---@param pcb Process
+---@param fd number
+function VFSManager.flush(pcb, fd)
+    local globalId = pcb.handles[fd];
+    if (not globalId) then
+        error("EBADF: Invalid file descriptor.");
+    end
+
+    local kobj = ObjectManager.get(globalId);
+
+    --- @type FileDescriptor
+    local file = kobj.impl;
+
+    if (not file.flush) then
+        return;
+    end
+
+    return file:flush(pcb);
 end
 
 ---Sends I/O control request to the driver.

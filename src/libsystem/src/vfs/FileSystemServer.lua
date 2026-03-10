@@ -62,7 +62,15 @@ function FileSystemServer:start()
                 self.nextFileId = self.nextFileId + 1;
                 self.openFiles[fileId] = fileHandle;
 
-                raw.ipc.send(reply, { status = "OK", data = { fileId = fileId } });
+                local fileSize = 0
+                if self.handlers.onStat then
+                    local ok, meta = pcall(function() return self.handlers:onStat(payload.path, payload.user) end)
+                    if ok and meta and type(meta.size) == "number" then
+                        fileSize = meta.size
+                    end
+                end
+
+                raw.ipc.send(reply, { status = "OK", data = { fileId = fileId, size = fileSize } });
 
             elseif (msgType == "VFS_CLOSE") then
                 local handle = self.openFiles[payload.fileId];
@@ -82,7 +90,14 @@ function FileSystemServer:start()
                 if (not handle) then error("EBADF: Invalid file descriptor passed to driver.", 2) end;
                 if (not handle.write) then error("ENOSYS: Operation write is not supported.", 2) end;
                 local written = handle:write(payload.data, payload.offset, payload.user);
-                raw.ipc.send(reply, { status = "OK", data = written })
+                raw.ipc.send(reply, { status = "OK", data = written });
+
+            elseif (msgType == "VFS_FLUSH") then
+                local handle = self.openFiles[payload.fileId];
+                if (not handle) then error("EBADF: Invalid file descriptor passed to driver.", 2) end;
+                if (handle.flush) then handle:flush() end;
+
+                raw.ipc.send(reply, { status = "OK" });
 
             elseif (msgType == "VFS_STAT") then
                 if (not self.handlers.onStat) then error("ENOSYS: Operation stat is not available.", 2) end

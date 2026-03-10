@@ -98,6 +98,14 @@ declare module "libsystem.raw" {
         export function write(fd: FileDescriptor, data: any, offset?: number): number;
 
         /**
+         * Flushes data
+         * @param fd The file descriptor.
+         * @throws EBADF: Invalid file descriptor.
+         * @throws EINVAL: Object does not support writing.
+         */
+        export function flush(fd: FileDescriptor): void;
+
+        /**
          * Moves the file cursor.
          * @param fd The file descriptor.
          * @param offset Number of bytes to move.

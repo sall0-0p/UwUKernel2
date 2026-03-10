@@ -38,7 +38,7 @@ function EnvironmentFactory.getEnvironment(pid, args)
             result = result .. "\n";
 
             local length = env.call(67, 2, result);
-            env.call()
+            env.call(82, 2);
             return length;
         end,
 

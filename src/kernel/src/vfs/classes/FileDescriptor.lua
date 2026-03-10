@@ -41,7 +41,12 @@ function FileDescriptor:read(pcb, bytes, offset)
         offset = offset,
         bytes = bytes,
         user = { uid = pcb.euid, gid = pcb.egid },
-    });
+    }, function(data)
+        if data and type(data) == "string" then
+            self.cursor = offset + #data
+        end
+        return { data }
+    end);
 end
 
 function FileDescriptor:write(pcb, data, offset)
@@ -50,7 +55,19 @@ function FileDescriptor:write(pcb, data, offset)
         offset = offset,
         data = data,
         user = { uid = pcb.euid, gid = pcb.egid },
-    });
+    }, function(written)
+        if type(written) == "number" then
+            self.cursor = offset + written
+        end
+        return { written }
+    end);
+end
+
+function FileDescriptor:flush(pcb)
+    return Promise.send(self.driverPort, Protocol.Methods.FLUSH, {
+        fileId = self.fileId,
+        user = { uid = pcb.euid, gid = pcb.egid },
+    })
 end
 
 function FileDescriptor:close(pcb)
