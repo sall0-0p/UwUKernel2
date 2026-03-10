@@ -1,5 +1,5 @@
 import * as utils from "libsystem.utils";
-import {fs, proc} from "libsystem.raw";
+import {fs, ipc, proc, sys} from "libsystem.raw";
 
 const parsedArgs: { message?: string } = utils.parseArguments(arg, {
     "message": true,
@@ -15,4 +15,11 @@ if (name == "exampled") {
     fs.write(newFile, `Hello from ${name} \n`);
     fs.write(newFile, `Old fd: ${file}, new fd: ${newFile} \n`);
     fs.close(newFile);
+}
+
+if (name == "dependencyd") {
+    const timerPort = ipc.create();
+    sys.timer(timerPort, 5);
+    ipc.receive(timerPort);
+    ipc.send(0 as PortId, { status: "ready" })
 }

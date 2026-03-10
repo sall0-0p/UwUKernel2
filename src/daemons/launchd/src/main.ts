@@ -86,9 +86,7 @@ const reaper = task.create(() => {
 
 ServiceRegistry.discover("/System/Config/Services");
 ServiceRegistry.getServices().forEach((s, n) => print(n));
-ServiceRunner.run();
-
-print(mailbox);
+ServiceRunner.run(mailbox);
 
 task.join(reaper);
 print("Launchd exiting!");

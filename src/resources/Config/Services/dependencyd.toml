@@ -6,7 +6,7 @@ Description = "This file is example of Service configuration"
 # way in which service is marked as ready
 # simple - means that process is ready immediately after being spawned
 # notify - means that service.notify() has to be called for it to be marked as ready
-Type = "simple"
+Type = "notify"
 
 [Exec]
 # required if you actually want to run something, path towards lua file to be executed.

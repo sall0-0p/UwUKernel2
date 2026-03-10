@@ -31,13 +31,15 @@ declare module "libsystem.raw" {
             op: "SHARE" | "MOVE",
         }
 
+        export type FileDescriptorTable = Record<number, FileDescriptor | ShareProperties>;
+
         export interface SpawnAttributes {
             /** Map of environment variables to pass to the process */
             env?: Record<string, string>;
             /** Working directory path */
             cwd?: string;
             /** Map of child file descriptors to parent file descriptors */
-            fds?: Record<number, FileDescriptor | ShareProperties>;
+            fds?: FileDescriptorTable
             /** Run as user ID (requires root) */
             uid?: number;
             /** Run as group ID (requires root) */
