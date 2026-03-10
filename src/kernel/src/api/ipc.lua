@@ -42,6 +42,20 @@ function ipc.receive(tcb, port, opts);
     end
 end
 
+---Blocks until a message arrives on one of the specified ports.
+---@param tcb Thread Thread calling the syscall.
+---@param fds table|number Array of FDs or a single FD.
+function ipc.poll(tcb, fds)
+    local process = ProcessRegistry.get(tcb.pid)
+    local readyFd, status = IPCManager.poll(process, fds)
+
+    if status == "OK" then
+        return readyFd
+    else
+        return { status = "BLOCK", reason = "POLL", target = fds }
+    end
+end
+
 ---Releases a handle.
 ---@param tcb Thread Thread calling the syscall.
 ---@param fd number Handle to close.
@@ -65,4 +79,5 @@ return {
     -- ipc.transfer (35) was redundant and I decided to remove it.
     [36] = ipc.close,
     [37] = ipc.stat,
+    [38] = ipc.poll,
 }

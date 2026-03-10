@@ -32,7 +32,6 @@ proc.spawn("/System/ccfsd/init.lua", [ "-v", "volume:system", "--path", "/dev/vo
 })
 
 ipc.receive(mailbox);
-print("Received on mailbox for sysvold!");
 
 proc.spawn("/System/ccfsd/init.lua", [ "-v", "volume:data", "--path", "/dev/vol1" ], {
     name: "datavold",
@@ -46,7 +45,6 @@ proc.spawn("/System/ccfsd/init.lua", [ "-v", "volume:data", "--path", "/dev/vol1
 })
 
 ipc.receive(mailbox);
-print("Received on mailbox for datavold!");
 
 proc.spawn("/System/rootfsd/init.lua", [ "--volume", "/dev/vol0", "--path", "/System" ], {
     name: "systemfsd",
@@ -60,7 +58,6 @@ proc.spawn("/System/rootfsd/init.lua", [ "--volume", "/dev/vol0", "--path", "/Sy
 })
 
 ipc.receive(mailbox);
-print("Received on mailbox for systemfsd!");
 
 proc.spawn("/System/rootfsd/init.lua", [ "--volume", "/dev/vol1", "--path", "/" ], {
     name: "systemfsd",
@@ -74,9 +71,7 @@ proc.spawn("/System/rootfsd/init.lua", [ "--volume", "/dev/vol1", "--path", "/" 
 })
 
 ipc.receive(mailbox);
-print("Received on mailbox for datafsd!");
 
-print("Created reaper!");
 const reaper = task.create(() => {
     while (proc.info().children.length > 0) {
         const result = proc.wait(-1);
@@ -85,7 +80,6 @@ const reaper = task.create(() => {
 })
 
 ServiceRegistry.discover("/System/Config/Services");
-ServiceRegistry.getServices().forEach((s, n) => print(n));
 ServiceRunner.run(mailbox);
 
 task.join(reaper);

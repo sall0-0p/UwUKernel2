@@ -15,7 +15,8 @@ Port.__index = Port;
 function Port.new()
     local new = {
         queue = {},
-        capacity = 16,
+        capacity = math.huge, -- I do not want to care about capacity, really for later
+        pollers = {},
         receivers = {},
         senders = {},
         ownerPid = nil,

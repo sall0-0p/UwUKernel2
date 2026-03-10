@@ -41,9 +41,9 @@ Delay = 5
 
 [Activation]
 # this enables socket activation, optional, default false
-Enabled = false
+Enabled = true
 # this defines mount point for socket activation
-MountPoint = "/Devices/example"
+MountPoint = "/Devices/dependencyd"
 
 # it always creates port at 4, which is responsible for service related messages,
 # this is same port that is discovered when service is querried.

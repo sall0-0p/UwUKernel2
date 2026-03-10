@@ -33,6 +33,11 @@ function ReceiveRight:onRelease(by)
     if (kernelObject and kernelObject.type == "PORT") then
         ---@type Port
         local port = kernelObject.impl;
+
+        if (by ~= port.ownerPid) then
+            return;
+        end;
+
         port.ownerPid = nil;
 
         -- SIGPIPE
@@ -44,7 +49,7 @@ function ReceiveRight:onRelease(by)
             local senderPcb = ProcessRegistry.get(senderPid);
             if senderPcb then
                 local fd;
-                for lFd, gId in pairs(senderPcb.handles) do
+                 for lFd, gId in pairs(senderPcb.handles) do
                     local obj = ObjectManager.get(gId);
                     if obj and obj.type == "SEND_RIGHT" and obj.impl.portId == self.portId then
                         fd = lFd;

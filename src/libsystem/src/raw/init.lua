@@ -23,6 +23,7 @@ local library = {
         receive = 34,
         close = 36,
         stat = 37,
+        poll = 38,
     },
 
     fs = {

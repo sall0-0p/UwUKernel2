@@ -13,8 +13,9 @@ export namespace SocketActivator {
 
             ServiceStarter.start(service, {
                 [0]: controlPort,
-                [4]: service.ipcPort,
-                [5]: service.mountPort
+                [2]: 2 as PortId,
+                [4]: { fd: service.ipcPort, op: "MOVE" },
+                [5]: { fd: service.mountPort, op: "MOVE" },
             })
         })
     }

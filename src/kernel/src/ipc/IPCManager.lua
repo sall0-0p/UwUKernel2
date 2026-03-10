@@ -133,7 +133,7 @@ function IPCManager.send(pcb, fd, payload, opts)
     -- callbacks
     if (port.isKernelCallback and port.callback) then
         -- Handle one-time senders (reply ports)
-        local oneTimeUse = false;
+        local oneTimeUse = port.temporary;
         for i, v in pairs(port.temporarySenders) do
             if (v == pcb.pid) then
                 oneTimeUse = true;
@@ -217,6 +217,20 @@ function IPCManager.send(pcb, fd, payload, opts)
     end
 
     table.insert(port.queue, message);
+
+    if #port.pollers > 0 then
+        local remainingPollers = {};
+        for _, pr in ipairs(port.pollers) do
+            if not pr.req.triggered then
+                pr.req.triggered = true;
+                Scheduler.wake(pr.req.tid, { true, { pr.fd } });
+            else
+                -- drop
+            end
+        end
+        port.pollers = remainingPollers;
+    end
+
     return false;
 end
 
@@ -345,6 +359,20 @@ function IPCManager.sendKernelMessage(globalPortId, payload, opts)
         return true;
     else
         table.insert(port.queue, message);
+
+        if #port.pollers > 0 then
+            local remainingPollers = {};
+            for _, pr in ipairs(port.pollers) do
+                if not pr.req.triggered then
+                    pr.req.triggered = true;
+                    Scheduler.wake(pr.req.tid, { true, { pr.fd } });
+                else
+                    -- drop
+                end
+            end
+            port.pollers = remainingPollers;
+        end
+
         return true;
     end
 end
@@ -370,10 +398,6 @@ function IPCManager.receive(pcb, fd)
 
     --- @type Port
     local port = portObj.impl;
-
-    if port.ownerPid ~= pcb.pid then
-        error("EPERM: Only port owner can receive messages.");
-    end
 
     -- if there is already something in a queue
     -- we return immediately
@@ -423,6 +447,52 @@ end
 --- @param fd number specific file descriptor pointing to port, to get metadata for.
 function IPCManager.close(pcb, fd)
     ObjectManager.close(pcb, fd);
+end
+
+--Blocks until at least one of the provided ports has a message in its queue.
+---@param pcb Process
+---@param fds table|number Array of port file descriptors (or a single fd)
+---@return number|nil readyFd The fd that is ready to be read
+---@return string status "OK" or "EMPTY"
+function IPCManager.poll(pcb, fds)
+    if type(fds) ~= "table" then
+        fds = { fds }
+    end
+
+    local portsToPoll = {}
+
+    -- validate and check if already have messages
+    for _, fd in ipairs(fds) do
+        local globalId = pcb.handles[fd];
+        if not globalId then error("EBADF: Invalid file descriptor.") end
+
+        local rightObj = ObjectManager.get(globalId);
+        if not rightObj or rightObj.type ~= "RECEIVE_RIGHT" then
+            error("EPERM: Descriptor is not a receive right.");
+        end
+
+        local portObj = ObjectManager.get(rightObj.impl.portId);
+        local port = portObj.impl;
+
+        if port.ownerPid ~= pcb.pid then
+            error("EPERM: Only port owner can poll.");
+        end
+
+        if #port.queue > 0 then
+            return fd, "OK";
+        end
+
+        table.insert(portsToPoll, { port = port, fd = fd })
+    end
+
+    local tid = Scheduler.getCurrentTid();
+    local req = { tid = tid, triggered = false };
+
+    for _, p in ipairs(portsToPoll) do
+        table.insert(p.port.pollers, { req = req, fd = p.fd });
+    end
+
+    return nil, "EMPTY"
 end
 
 --- Returns some debug data about port.

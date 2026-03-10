@@ -1,7 +1,6 @@
 import {IService, ServiceRegistry} from "./ServiceRegistry";
 import {BootManager} from "./boot/BootManager";
-import {ExecutionService} from "../execute/ExecutionService";
-import {fs, ipc, task} from "libsystem.raw";
+import {ipc, task} from "libsystem.raw";
 import {SocketActivator} from "./SocketActivator";
 import {ServiceStarter} from "./ServiceStarter";
 
@@ -25,15 +24,11 @@ export namespace ServiceRunner {
             while (threads.length > 0) {
                 task.join(threads.pop());
             }
-
-            print("All services in stage are ready!");
         })
     }
 
     function launchService(service: IService, controlPort: PortId) {
         const definition = service.definition;
-        const executable = definition.Exec.Path;
-        const properties = fs.stat(executable);
 
         // Create activation ports
         if (definition.Activation?.Enabled) {
@@ -41,6 +36,7 @@ export namespace ServiceRunner {
         } else {
             ServiceStarter.start(service, {
                 [0]: controlPort,
+                [2]: 2 as PortId,
             })
         }
 

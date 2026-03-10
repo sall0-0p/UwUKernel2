@@ -70,7 +70,7 @@ Wants = []
 # requires to be started after dependency have fully loaded
 # and marked itself as ready
 # optional, default: []
-After = ["dependencyd"]
+After = []
 # requires to be launched before another service, inverse After
 # optional, default: []
 Before = []
