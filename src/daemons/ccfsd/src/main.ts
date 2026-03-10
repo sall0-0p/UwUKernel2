@@ -1,3 +1,5 @@
+// @ts-ignore
+print("Hallo!", debug.serialize(package.preload));
 import {dev, fs, ipc, proc} from "libsystem.raw";
 import * as utils from "libsystem.utils";
 import {IExpectedArguments} from "./interfaces/IExpectedArguments";

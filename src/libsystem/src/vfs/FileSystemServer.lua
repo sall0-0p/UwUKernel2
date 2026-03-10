@@ -1,4 +1,4 @@
-local raw = require("native");
+local raw = require("libsystem.raw");
 
 --- @class UserContext
 --- @field uid number
@@ -136,7 +136,7 @@ function FileSystemServer:start()
             end
         end)
 
-        if not ok then
+        if not ok and reply then
             raw.ipc.send(reply, { status = "ERROR", data = err })
         end
 

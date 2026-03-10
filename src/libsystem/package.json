@@ -4,8 +4,7 @@
   "description": "UwUntuCC System Library (Lua Implementation & TS Definitions)",
   "types": "types/types.d.ts",
   "uwuntu": {
-    "type": "lua-bundle",
-    "entry": "src/init.lua",
-    "target": "System/Library/syslib/init.lua"
+    "type": "library",
+    "target": "System/Library/libsystem"
   }
 }

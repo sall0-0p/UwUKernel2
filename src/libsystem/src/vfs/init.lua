@@ -1,3 +1,3 @@
 return {
-    FileSystemServer = require("vfs.FileSystemServer");
+    FileSystemServer = require("libsystem.vfs.FileSystemServer");
 }

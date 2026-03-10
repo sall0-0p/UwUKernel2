@@ -117,24 +117,19 @@ function ProcessManager.spawn(ppid, path, args, attr)
     if (attr.preload) then
         for name, data in pairs(attr.preload) do
             if type(data) == "string" then
-                local chunk, err = loadstring(data, "@" .. name);
-                if not chunk then
-                    error("ENOEXEC: Failed to load preload " .. name .. ": " .. tostring(err));
-                end
-
-                setfenv(chunk, processEnv);
-                local exports = chunk();
-
-                if type(exports) == "table" then
-                    for k, v in pairs(exports) do
-                        processEnv.package.preload[k] = function() return v end;
+                processEnv.package.preload[name] = function(modname)
+                    local chunk, err = loadstring(data, "@" .. (name:gsub("%.", "/") .. ".lua"));
+                    if not chunk then
+                        error("ENOEXEC: Failed to load preload " .. name .. ": " .. tostring(err));
                     end
-                else
-                    processEnv.package.preload[name] = function() return exports end;
+                    setfenv(chunk, processEnv);
+                    return chunk(modname);
                 end
             elseif type(data) == "function" then
-                setfenv(data, processEnv);
-                processEnv.package.preload[name] = data;
+                processEnv.package.preload[name] = function(modname)
+                    setfenv(data, processEnv);
+                    return data(modname);
+                end
             else
                 processEnv.package.preload[name] = function() return data end;
             end

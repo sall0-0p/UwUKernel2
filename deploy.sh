@@ -69,6 +69,8 @@ for pkg_json in $(find src/daemons src/libsystem src/utils -name "package.json" 
         -p "$PKG_DIR/src/?.lua" \
         -p "$PKG_DIR/src/?/init.lua" \
         -o "$OUT_DIR/$TARGET_PATH"
+    elif [ "$PKG_TYPE" == "library" ]; then
+      cp -R "$PKG_DIR/src/." "$OUT_DIR/$TARGET_PATH"
     else
       cp "$PKG_DIR/init.lua" "$OUT_DIR/$TARGET_PATH"
     fi

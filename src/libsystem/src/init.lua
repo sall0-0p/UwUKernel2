@@ -1,9 +1,9 @@
-local native = require("native");
+local raw = require("libsystem.raw");
 local export = {};
 
 -- libsystem.raw subpackages
-export["libsystem.raw"] = native;
-for k, v in pairs(native) do
+export["libsystem.raw"] = raw;
+for k, v in pairs(raw) do
     export["libsystem.raw." .. k] = v;
 end
 
