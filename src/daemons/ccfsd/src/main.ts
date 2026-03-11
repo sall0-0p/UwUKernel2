@@ -19,7 +19,7 @@ const server = new FileSystemServer(new DiskHandlers(volume));
 const port = server.getPortId();
 fs.mount(parsedArgs.path, port);
 
-ipc.send(0 as PortId, { status: "OK" });
+ipc.send(0 as PortId, { status: "ready" });
 server.start();
 
 proc.exit(0);

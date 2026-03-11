@@ -30,6 +30,9 @@ export namespace ServiceRunner {
     function launchService(service: IService, controlPort: PortId) {
         const definition = service.definition;
 
+        // Lets not relaunch services that are already running.
+        if (service.status != "off") return;
+
         // Create activation ports
         if (definition.Activation?.Enabled) {
             SocketActivator.process(service, controlPort);
@@ -40,11 +43,15 @@ export namespace ServiceRunner {
             })
         }
 
+        // @ts-ignore because its set in ServiceStarter.start and SocketActivator.process
         if (definition.Service.Type == "notify" && service.status == "starting") {
             const message = ipc.receive(controlPort);
             if (message.data.status && message.data.status == "ready") {
                 service.status = "running";
+                print("Started", service.definition.Service.Name);
             }
+        } else {
+            print("Started", service.definition.Service.Name);
         }
     }
 }

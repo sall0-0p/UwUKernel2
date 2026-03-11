@@ -2,6 +2,7 @@ import {dev, fs, proc, ipc, io, sys, task} from "libsystem.raw";
 import * as toml from "libsystem.toml";
 import {ServiceRegistry} from "./service/ServiceRegistry";
 import {ServiceRunner} from "./service/ServiceRunner";
+import {ReaperService} from "./service/reaper/ReaperService";
 
 const terminal = dev.open("terminal");
 const stdout = io.dup(terminal, 2);
@@ -16,72 +17,62 @@ fs.ioctl(terminal, "setTextColor", 1);
 // loading blobs
 const ccfsdBlob: string = arg['ccfsd'];
 const rootfsdBlob: string = arg['rootfsd'];
-
 const mailbox = ipc.create();
 
-// spawn ccfsd for volume 1 (system)
-proc.spawn("/System/ccfsd/init.lua", [ "-v", "volume:system", "--path", "/dev/vol0" ], {
-    name: "sysvold",
-    blob: ccfsdBlob,
-    // @ts-ignore
-    preload: package.preload,
-    fds: {
-        [0]: mailbox as FileDescriptor,
-        [2]: terminal,
+ServiceRegistry.registerSynthetic("sysvold", {
+    Service: { Name: "sysvold", Type: "notify", Description: "Raw System Volume" },
+    Exec: {
+        Path: "/System/ccfsd/init.lua",
+        Arguments: ["-v", "volume:system", "--path", "/dev/vol0"],
+        Blob: ccfsdBlob,
+        // @ts-ignore
+        Preload: package.preload
     }
-})
+});
 
-ipc.receive(mailbox);
-
-proc.spawn("/System/ccfsd/init.lua", [ "-v", "volume:data", "--path", "/dev/vol1" ], {
-    name: "datavold",
-    blob: ccfsdBlob,
-    // @ts-ignore
-    preload: package.preload,
-    fds: {
-        [0]: mailbox as FileDescriptor,
-        [2]: terminal,
+ServiceRegistry.registerSynthetic("datavold", {
+    Service: { Name: "datavold", Type: "notify", Description: "Raw Data Volume" },
+    Exec: {
+        Path: "/System/ccfsd/init.lua",
+        Arguments: ["-v", "volume:data", "--path", "/dev/vol1"],
+        Blob: ccfsdBlob,
+        // @ts-ignore
+        Preload: package.preload
     }
-})
+});
 
-ipc.receive(mailbox);
+ServiceRegistry.registerSynthetic("systemfsd", {
+    Service: { Name: "systemfsd", Type: "notify", Description: "System VFS Mount" },
+    Exec: {
+        Path: "/System/rootfsd/init.lua",
+        Arguments: ["--volume", "/dev/vol0", "--path", "/System"],
+        Blob: rootfsdBlob,
+        // @ts-ignore
+        Preload: package.preload
+    },
+    Dependencies: { Requires: ["sysvold"], After: ["sysvold"] }
+});
 
-proc.spawn("/System/rootfsd/init.lua", [ "--volume", "/dev/vol0", "--path", "/System" ], {
-    name: "systemfsd",
-    blob: rootfsdBlob,
-    // @ts-ignore
-    preload: package.preload,
-    fds: {
-        [0]: mailbox as FileDescriptor,
-        [2]: terminal,
-    }
-})
+ServiceRegistry.registerSynthetic("datafsd", {
+    Service: { Name: "datafsd", Type: "notify", Description: "Root VFS Mount" },
+    Exec: {
+        Path: "/System/rootfsd/init.lua",
+        Arguments: ["--volume", "/dev/vol1", "--path", "/"],
+        Blob: rootfsdBlob,
+        // @ts-ignore
+        Preload: package.preload
+    },
+    Dependencies: { Requires: ["datavold"], After: ["datavold"] }
+});
 
-ipc.receive(mailbox);
+// Run filesystem related services (stage 1)
+ServiceRunner.run(mailbox);
+print("Started ram daemons!");
 
-proc.spawn("/System/rootfsd/init.lua", [ "--volume", "/dev/vol1", "--path", "/" ], {
-    name: "systemfsd",
-    blob: rootfsdBlob,
-    // @ts-ignore
-    preload: package.preload,
-    fds: {
-        [0]: mailbox as FileDescriptor,
-        [2]: terminal,
-    }
-})
-
-ipc.receive(mailbox);
-
-const reaper = task.create(() => {
-    while (proc.info().children.length > 0) {
-        const result = proc.wait(-1);
-        print(`Process ${result.pid} finished with code ${result.code}! It ran for ${result.usage}`);
-    }
-})
-
+// Run other services (stage 2)
 ServiceRegistry.discover("/System/Config/Services");
 ServiceRunner.run(mailbox);
+print("Started other daemons!")
 
-task.join(reaper);
-print("Launchd exiting!");
+ReaperService.start();
 proc.exit(0);

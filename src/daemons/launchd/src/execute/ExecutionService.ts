@@ -35,6 +35,11 @@ export namespace ExecutionService {
         user: UserCredentials,
         opts?: proc.SpawnAttributes
     ): number {
+        if (opts.blob) {
+            opts.parent = parent as ProcessId;
+            return proc.spawn(path, args, opts);
+        }
+
         const stat = fs.stat(path);
         if (!stat) error("File does not exist!");
         if (!checkPermissions(user, stat, "execute")) error("No permission!");

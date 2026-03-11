@@ -7,13 +7,20 @@ export namespace ServiceStarter {
         try {
             const definition = service.definition;
             const executable = definition.Exec.Path;
-            const properties = fs.stat(executable);
+
+            let defaultUid = 0;
+            let defaultGid = 0;
+            if (!definition.Exec.Blob) {
+                const properties = fs.stat(executable);
+                defaultUid = properties.uid;
+                defaultGid = properties.gid;
+            }
 
             // start the thing
-            service.pid = ExecutionService.execute(1, executable, definition.Exec.Arguments || [], { uid: properties.uid, gid: properties.gid, groups: [] }, {
+            service.pid = ExecutionService.execute(1, executable, definition.Exec.Arguments || [], { uid: defaultUid, gid: defaultGid, groups: [] }, {
                 env: definition.Environment ?? {},
-                uid: definition.User?.User ?? properties.uid,
-                gid: definition.User?.Group ?? properties.gid,
+                uid: definition.User?.User ?? defaultUid,
+                gid: definition.User?.Group ?? defaultGid,
                 cwd: definition.Exec.WorkingDir ?? "/",
                 name: definition.Service.Name,
                 limits: {
@@ -23,6 +30,8 @@ export namespace ServiceStarter {
                     maxProcesses: definition.Limits?.MaxProcesses ?? 16,
                 },
                 fds: fds,
+                blob: definition.Exec.Blob,
+                preload: definition.Exec.Preload,
             });
 
             // set status according to type, later starting services will be listened upon

@@ -8,6 +8,8 @@ export interface IExecBlock {
     Path: string,
     WorkingDir?: string,
     Arguments?: string[],
+    Blob?: string,
+    Preload?: Record<string, any>,
 }
 
 export interface ILimitsBlock {

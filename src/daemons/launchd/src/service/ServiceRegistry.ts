@@ -22,11 +22,22 @@ export namespace ServiceRegistry {
             const def = toml.decode(config) as IServiceDefinition;
 
             fs.close(file);
+            if (def.Exec.Blob) {
+                // I do not allow blobs in configs, use filesystem
+                return;
+            }
             services.set(def.Service.Name, {
                 definition: def,
                 status: "off",
             });
         })
+    }
+
+    export function registerSynthetic(name: string, def: IServiceDefinition) {
+        services.set(name, {
+            definition: def,
+            status: "off",
+        });
     }
 
     export function getServices() {

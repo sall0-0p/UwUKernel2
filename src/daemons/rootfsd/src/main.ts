@@ -17,8 +17,7 @@ const handlers = new FileHandlers(parsedArgs.volume);
 const server = new FileSystemServer(handlers);
 const port = server.getPortId();
 fs.mount(parsedArgs.path, port);
-ipc.send(0 as PortId, { status: "OK" });
 
-print("Starting filesystem server!");
+ipc.send(0 as PortId, { status: "ready" });
 server.start();
 proc.exit(0);
