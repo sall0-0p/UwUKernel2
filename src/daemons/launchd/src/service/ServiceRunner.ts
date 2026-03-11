@@ -31,7 +31,7 @@ export namespace ServiceRunner {
         const definition = service.definition;
 
         // Lets not relaunch services that are already running.
-        if (service.status != "off") return;
+        if (service.status != "off" && service.status != "dead") return;
 
         // Create activation ports
         if (definition.Activation?.Enabled) {
@@ -48,10 +48,26 @@ export namespace ServiceRunner {
             const message = ipc.receive(controlPort);
             if (message.data.status && message.data.status == "ready") {
                 service.status = "running";
-                print("Started", service.definition.Service.Name);
             }
-        } else {
-            print("Started", service.definition.Service.Name);
         }
+    }
+
+    export function restart(service: IService, services: Map<string, IService>, controlPort: number) {
+        const requirements = service.definition.Dependencies?.Requires || [];
+        for (const req of requirements) {
+            const dep = services.get(req);
+            if (!dep || dep.status === "dead" || dep.status === "off") {
+                print(`Restart aborted for ${service.definition.Service.Name}: Requirement '${req}' is dead.`);
+                return;
+            }
+        }
+
+        print(`Restarting service: ${service.definition.Service.Name}...`);
+
+        service.pid = undefined;
+        service.ipcPort = undefined;
+        service.mountPort = undefined;
+
+        launchService(service, controlPort as PortId);
     }
 }

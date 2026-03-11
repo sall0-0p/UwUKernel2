@@ -37,9 +37,9 @@ APIKEY = "REALLY COOL APIKEY TO TRIGGER GITHUB, YAY"
 
 [Restart]
 # "no" for no restarts, "on-failure" for restarts if exit code ~= 0, "always" - always restart. Optional, default: "no"
-Policy = "no"
+Policy = "always"
 # in seconds (optional, default 0)
-Delay = 5
+Delay = 3
 
 [Activation]
 # this enables socket activation, optional, default false
@@ -62,7 +62,7 @@ MountPoint = "/Devices/example"
 # if requirement is not there - wont be started
 # they can be started up concurrently with their dependencies
 # optional, default: []
-Requires = []
+Requires = ["dependencyd"]
 # soft dependency, wants to be started with another service,
 # but it will not be killed and can run without it
 # optional, default: []

@@ -1,11 +1,11 @@
 import {dev, fs, proc, ipc, io, sys, task} from "libsystem.raw";
 import * as toml from "libsystem.toml";
-import {ServiceRegistry} from "./service/ServiceRegistry";
+import {IService, ServiceRegistry} from "./service/ServiceRegistry";
 import {ServiceRunner} from "./service/ServiceRunner";
 import {ReaperService} from "./service/reaper/ReaperService";
 
 const terminal = dev.open("terminal");
-const stdout = io.dup(terminal, 2);
+io.dup(terminal, 2);
 
 // printing system info
 fs.ioctl(terminal, "clear", 4);
@@ -66,13 +66,16 @@ ServiceRegistry.registerSynthetic("datafsd", {
 });
 
 // Run filesystem related services (stage 1)
+const services = ServiceRegistry.getServices();
+ServiceRegistry.resolveDependencies(services);
 ServiceRunner.run(mailbox);
 print("Started ram daemons!");
 
 // Run other services (stage 2)
 ServiceRegistry.discover("/System/Config/Services");
+ServiceRegistry.resolveDependencies(services);
 ServiceRunner.run(mailbox);
-print("Started other daemons!")
+print("Started other daemons!");
 
-ReaperService.start();
+ReaperService.start(services, mailbox);
 proc.exit(0);
