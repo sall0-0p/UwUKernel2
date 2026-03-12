@@ -6,11 +6,11 @@ local modules = {
     require("api.proc"),
     require("api.thread"),
     require("api.ipc"),
-     require("api.fs"),
-     require("api.io"),
-     require("api.sys"),
-     require("api.dev"),
-    -- require("api.sync"),
+    require("api.fs"),
+    require("api.io"),
+    require("api.sys"),
+    require("api.dev"),
+    require("api.sync"),
 };
 
 for _, module in pairs(modules) do
