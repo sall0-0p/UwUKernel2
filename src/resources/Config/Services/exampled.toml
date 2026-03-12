@@ -62,7 +62,7 @@ MountPoint = "/Devices/example"
 # if requirement is not there - wont be started
 # they can be started up concurrently with their dependencies
 # optional, default: []
-Requires = ["dependencyd"]
+Requires = []
 # soft dependency, wants to be started with another service,
 # but it will not be killed and can run without it
 # optional, default: []

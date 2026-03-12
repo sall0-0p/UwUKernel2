@@ -27,11 +27,12 @@ export namespace ServiceRunner {
         })
     }
 
-    function launchService(service: IService, controlPort: PortId) {
+    function launchService(service: IService, controlPort: PortId, restarting?: boolean) {
         const definition = service.definition;
 
         // Lets not relaunch services that are already running.
-        if (service.status != "off" && service.status != "dead") return;
+        // if off or (dead and restarting)
+        if (!(service.status == "off" || (service.status == "dead" && restarting))) return;
 
         // Create activation ports
         if (definition.Activation?.Enabled) {
