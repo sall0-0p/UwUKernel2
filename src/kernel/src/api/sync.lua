@@ -1,10 +1,10 @@
-local ProcessRegistry = require("proc.registry.ProcessRegistry")
-local ThreadRegistry = require("proc.registry.ThreadRegistry")
-local ObjectManager = require("core.ObjectManager")
-local KernelObject = require("core.KernelObject")
-local Mutex = require("sync.classes.Mutex")
-local ConditionVariable = require("sync.classes.ConditionVariable")
-local Scheduler = require("core.Scheduler")
+local ProcessRegistry = require("proc.registry.ProcessRegistry");
+local ThreadRegistry = require("proc.registry.ThreadRegistry");
+local ObjectManager = require("core.ObjectManager");
+local KernelObject = require("core.KernelObject");
+local Mutex = require("sync.classes.Mutex");
+local ConditionVariable = require("sync.classes.ConditionVariable");
+local Scheduler = require("core.Scheduler");
 
 local sync = {}
 

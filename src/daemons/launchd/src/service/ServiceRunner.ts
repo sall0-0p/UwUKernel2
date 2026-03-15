@@ -1,10 +1,33 @@
 import {IService, ServiceRegistry} from "./ServiceRegistry";
 import {BootManager} from "./boot/BootManager";
-import {ipc, task} from "libsystem.raw";
+import {io, ipc, sync, task} from "libsystem.raw";
 import {SocketActivator} from "./SocketActivator";
 import {ServiceStarter} from "./ServiceStarter";
+import {Server} from "../Server";
 
 export namespace ServiceRunner {
+    function allServicesRunning(stage: IService[]) {
+        let running = true;
+        stage.forEach((s) => {
+            running = s.status == "running" && running;
+        })
+        return running;
+    }
+
+    function waitForStage(stage: IService[]) {
+        const stateMutex = Server.getMutex();
+        const stageCond = Server.getCond();
+        sync.lock(stateMutex);
+
+        while (!allServicesRunning(stage)) {
+            sync.wait(stageCond, stateMutex);
+        }
+
+        sync.unlock(stateMutex);
+
+        print("Stage started!");
+    }
+
     export function run(controlPort: PortId) {
         const services = ServiceRegistry.getServices();
         const stages = BootManager.getStages(services);
@@ -24,6 +47,8 @@ export namespace ServiceRunner {
             while (threads.length > 0) {
                 task.join(threads.pop());
             }
+
+            waitForStage(mapped);
         })
     }
 
@@ -33,23 +58,18 @@ export namespace ServiceRunner {
         // Lets not relaunch services that are already running.
         // if off or (dead and restarting)
         if (!(service.status == "off" || (service.status == "dead" && restarting))) return;
+        const processReceivePort = ipc.create();
+        service.ipcPort = io.dup(processReceivePort);
 
         // Create activation ports
         if (definition.Activation?.Enabled) {
-            SocketActivator.process(service, controlPort);
+            SocketActivator.process(service, controlPort, processReceivePort);
         } else {
             ServiceStarter.start(service, {
                 [0]: controlPort,
                 [2]: 2 as PortId,
+                [4]: { fd: processReceivePort, op: "MOVE" },
             })
-        }
-
-        // @ts-ignore because its set in ServiceStarter.start and SocketActivator.process
-        if (definition.Service.Type == "notify" && service.status == "starting") {
-            const message = ipc.receive(controlPort);
-            if (message.data.status && message.data.status == "ready") {
-                service.status = "running";
-            }
         }
     }
 

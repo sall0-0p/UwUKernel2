@@ -3,6 +3,7 @@ import * as toml from "libsystem.toml";
 import {IService, ServiceRegistry} from "./service/ServiceRegistry";
 import {ServiceRunner} from "./service/ServiceRunner";
 import {ReaperService} from "./service/reaper/ReaperService";
+import {Server} from "./Server";
 
 const terminal = dev.open("terminal");
 io.dup(terminal, 2);
@@ -18,6 +19,7 @@ fs.ioctl(terminal, "setTextColor", 1);
 const ccfsdBlob: string = arg['ccfsd'];
 const rootfsdBlob: string = arg['rootfsd'];
 const mailbox = ipc.create();
+Server.start(mailbox);
 
 ServiceRegistry.registerSynthetic("sysvold", {
     Service: { Name: "sysvold", Type: "notify", Description: "Raw System Volume" },
@@ -77,5 +79,6 @@ ServiceRegistry.resolveDependencies(services);
 ServiceRunner.run(mailbox);
 print("Started other daemons!");
 
-ReaperService.start(services, mailbox);
+const reaper = ReaperService.start(services, mailbox);
+task.join(reaper);
 proc.exit(0);

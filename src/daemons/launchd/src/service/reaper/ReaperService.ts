@@ -56,7 +56,7 @@ export namespace ReaperService {
     }
 
     export function start(services: Map<string, IService>, controlPort: number) {
-        const tid = task.create(() => reap(services, controlPort));
-        task.join(tid);
+        return task.create(() => reap(services, controlPort));
+
     }
 }
