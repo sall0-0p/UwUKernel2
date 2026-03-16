@@ -19,6 +19,10 @@ interface LaunchctlResponse {
     }
 }
 
+interface ReadyRequest {
+    type: "launchd_ready",
+}
+
 interface SpawnRequest {
     type: "launchd_spawn",
 }

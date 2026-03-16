@@ -24,8 +24,6 @@ export namespace ServiceRunner {
         }
 
         sync.unlock(stateMutex);
-
-        print("Stage started!");
     }
 
     export function run(controlPort: PortId) {
